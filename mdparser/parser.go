@@ -2,47 +2,118 @@ package mdparser
 
 import (
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 	
 	"github.com/riclib/gosvgchart"
 )
 
+// ChartDefinition represents a parsed chart definition
+type ChartDefinition struct {
+	ChartType string
+	Title     string
+	Width     int
+	Height    int
+	Colors    []string
+	Data      []float64
+	Labels    []string
+}
+
 // ParseMarkdownChart parses a chart specification from markdown text format
 // and returns an SVG representation of the chart.
 func ParseMarkdownChart(markdown string) (string, error) {
+	// Look for chart separator, which is a line containing only "---" with optional whitespace
+	re := regexp.MustCompile(`(?m)^\s*---\s*$`)
+	
+	// Check if we have multiple charts
+	if re.MatchString(markdown) {
+		// We have multiple charts, split and render them side by side
+		chartBlocks := re.Split(markdown, -1)
+		
+		// Trim each chart block
+		for i := range chartBlocks {
+			chartBlocks[i] = strings.TrimSpace(chartBlocks[i])
+		}
+		
+		return parseMultipleCharts(chartBlocks)
+	}
+	
+	// Single chart
+	chartDef, err := parseChartDefinition(markdown, 0)
+	if err != nil {
+		return "", err
+	}
+	
+	return renderChartFromDefinition(chartDef)
+}
+
+// parseMultipleCharts parses multiple chart definitions and renders them side by side
+func parseMultipleCharts(chartBlocks []string) (string, error) {
+	// Parse each chart block
+	chartDefs := make([]ChartDefinition, 0, len(chartBlocks))
+	
+	for i, block := range chartBlocks {
+		if strings.TrimSpace(block) == "" {
+			continue // Skip empty blocks
+		}
+		
+		chartDef, err := parseChartDefinition(block, i)
+		if err != nil {
+			return "", fmt.Errorf("error in chart #%d: %w", i+1, err)
+		}
+		chartDefs = append(chartDefs, chartDef)
+	}
+	
+	// Render charts side by side in a flex container
+	var result strings.Builder
+	result.WriteString(`<div style="display: flex; flex-wrap: wrap; justify-content: space-around; align-items: center; gap: 20px; margin: 20px 0;">`)
+	
+	for i, chartDef := range chartDefs {
+		svg, err := renderChartFromDefinition(chartDef)
+		if err != nil {
+			return "", fmt.Errorf("error rendering chart #%d: %w", i+1, err)
+		}
+		
+		result.WriteString(`<div style="flex: 1; min-width: 300px; max-width: 48%;">`)
+		result.WriteString(svg)
+		result.WriteString(`</div>`)
+	}
+	
+	result.WriteString(`</div>`)
+	return result.String(), nil
+}
+
+// parseChartDefinition parses a single chart definition
+func parseChartDefinition(markdown string, chartIndex int) (ChartDefinition, error) {
 	lines := strings.Split(markdown, "\n")
 	
+	var chartDef ChartDefinition
+	
+	// Default settings
+	chartDef.Width = 800
+	chartDef.Height = 500
+	chartDef.Title = "Chart"
+	
 	if len(lines) < 3 {
-		return "", fmt.Errorf("error: chart format invalid - too few lines. Need at least chart type, configuration, and data sections")
+		return chartDef, fmt.Errorf("chart format invalid - too few lines. Need at least chart type, configuration, and data sections")
 	}
 	
 	// Parse chart type from first line
-	chartType := strings.TrimSpace(strings.ToLower(lines[0]))
+	chartDef.ChartType = strings.TrimSpace(strings.ToLower(lines[0]))
 	
-	// Create appropriate chart
-	var chart gosvgchart.Chart
-	
-	switch chartType {
-	case "line", "linechart":
-		chart = gosvgchart.New()
-	case "bar", "barchart":
-		chart = gosvgchart.NewBarChart()
-	case "pie", "piechart":
-		chart = gosvgchart.NewPieChart()
-	default:
-		return "", fmt.Errorf("error: unknown chart type '%s'. Must be one of: linechart, barchart, piechart", chartType)
+	// Validate chart type
+	validTypes := map[string]bool{
+		"line": true, "linechart": true,
+		"bar": true, "barchart": true,
+		"pie": true, "piechart": true,
 	}
 	
-	// Default settings
-	width := 800
-	height := 500
-	title := "Chart"
+	if !validTypes[chartDef.ChartType] {
+		return chartDef, fmt.Errorf("unknown chart type '%s'. Must be one of: linechart, barchart, piechart", chartDef.ChartType)
+	}
 	
 	// Parse configuration and data
-	var data []float64
-	var labels []string
-	var colors []string
 	var dataStarted bool = false
 	var foundDataSection bool = false
 	var dataErrors []string
@@ -77,17 +148,17 @@ func ParseMarkdownChart(markdown string) (string, error) {
 					dataErrors = append(dataErrors, fmt.Sprintf("line %d: missing label before '|'", i+1))
 				}
 				
-				labels = append(labels, label)
+				chartDef.Labels = append(chartDef.Labels, label)
 				
 				if val, err := strconv.ParseFloat(valueStr, 64); err == nil {
-					data = append(data, val)
+					chartDef.Data = append(chartDef.Data, val)
 				} else {
 					dataErrors = append(dataErrors, fmt.Sprintf("line %d: '%s' is not a valid number", i+1, valueStr))
 				}
 			} else if len(parts) == 1 && parts[0] != "" {
 				// No label, just data
 				if val, err := strconv.ParseFloat(strings.TrimSpace(parts[0]), 64); err == nil {
-					data = append(data, val)
+					chartDef.Data = append(chartDef.Data, val)
 				} else {
 					dataErrors = append(dataErrors, fmt.Sprintf("line %d: '%s' is not a valid number", i+1, parts[0]))
 				}
@@ -107,16 +178,16 @@ func ParseMarkdownChart(markdown string) (string, error) {
 			
 			switch key {
 			case "title":
-				title = value
+				chartDef.Title = value
 			case "width":
 				if w, err := strconv.Atoi(value); err == nil && w > 0 {
-					width = w
+					chartDef.Width = w
 				} else {
 					configErrors = append(configErrors, fmt.Sprintf("line %d: invalid width value '%s' - must be a positive number", i+1, value))
 				}
 			case "height":
 				if h, err := strconv.Atoi(value); err == nil && h > 0 {
-					height = h
+					chartDef.Height = h
 				} else {
 					configErrors = append(configErrors, fmt.Sprintf("line %d: invalid height value '%s' - must be a positive number", i+1, value))
 				}
@@ -125,7 +196,7 @@ func ParseMarkdownChart(markdown string) (string, error) {
 				if len(colorList) == 0 {
 					configErrors = append(configErrors, fmt.Sprintf("line %d: invalid colors format - must be comma-separated list", i+1))
 				} else {
-					colors = colorList
+					chartDef.Colors = colorList
 				}
 			default:
 				configErrors = append(configErrors, fmt.Sprintf("line %d: unknown configuration key '%s'", i+1, key))
@@ -142,41 +213,48 @@ func ParseMarkdownChart(markdown string) (string, error) {
 		errors = append(errors, "missing 'data:' section - chart must include a data section")
 	}
 	
-	if len(data) == 0 {
+	if len(chartDef.Data) == 0 {
 		errors = append(errors, "no valid data points found - chart requires at least one data point")
 	}
 	
-	if len(labels) > 0 && len(labels) != len(data) {
-		errors = append(errors, fmt.Sprintf("mismatched labels and data points - found %d labels but %d data points", len(labels), len(data)))
+	if len(chartDef.Labels) > 0 && len(chartDef.Labels) != len(chartDef.Data) {
+		errors = append(errors, fmt.Sprintf("mismatched labels and data points - found %d labels but %d data points", len(chartDef.Labels), len(chartDef.Data)))
 	}
 	
 	// If we have validation errors, return them
 	if len(errors) > 0 {
-		return "", fmt.Errorf("chart definition errors:\n• %s", strings.Join(errors, "\n• "))
+		return chartDef, fmt.Errorf("chart definition errors:\n• %s", strings.Join(errors, "\n• "))
+	}
+	
+	return chartDef, nil
+}
+
+// renderChartFromDefinition renders a chart from a ChartDefinition
+func renderChartFromDefinition(chartDef ChartDefinition) (string, error) {
+	// Create appropriate chart
+	var chart gosvgchart.Chart
+	
+	switch chartDef.ChartType {
+	case "line", "linechart":
+		chart = gosvgchart.New()
+	case "bar", "barchart":
+		chart = gosvgchart.NewBarChart()
+	case "pie", "piechart":
+		chart = gosvgchart.NewPieChart()
 	}
 	
 	// Set basic properties
-	chart.SetTitle(title)
-	chart.SetSize(width, height)
+	chart.SetTitle(chartDef.Title)
+	chart.SetSize(chartDef.Width, chartDef.Height)
 	
-	if len(colors) > 0 {
-		chart.SetColors(colors)
+	if len(chartDef.Colors) > 0 {
+		chart.SetColors(chartDef.Colors)
 	}
 	
 	// Set data and labels
-	chart.SetData(data)
-	if len(labels) > 0 {
-		chart.SetLabels(labels)
-	}
-	
-	// Apply chart-specific settings based on type
-	switch chartType {
-	case "line", "linechart":
-		// No specific settings needed
-	case "bar", "barchart":
-		// No specific settings needed
-	case "pie", "piechart":
-		// No specific settings needed
+	chart.SetData(chartDef.Data)
+	if len(chartDef.Labels) > 0 {
+		chart.SetLabels(chartDef.Labels)
 	}
 	
 	// Render the chart

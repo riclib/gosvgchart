@@ -44,6 +44,16 @@ func TestChartExtension(t *testing.T) {
 			},
 		},
 		{
+			name: "Multiple Charts",
+			markdown: "```gosvgchart\nlinechart\ntitle: First Chart\nwidth: 400\nheight: 300\n\ndata:\nA | 10\nB | 20\n\n---\n\nbarchart\ntitle: Second Chart\nwidth: 400\nheight: 300\n\ndata:\nX | 30\nY | 40\n```",
+			contains: []string{
+				"display: flex",
+				"First Chart",
+				"Second Chart",
+				"<svg", // Should have multiple SVG tags
+			},
+		},
+		{
 			name: "Invalid Chart",
 			markdown: "```gosvgchart\ninvalidchart\ntitle: Invalid Chart\n\ndata:\nA | 10\nB | 20\n```",
 			contains: []string{
@@ -57,7 +67,7 @@ func TestChartExtension(t *testing.T) {
 			contains: []string{
 				"<h1>Header</h1>",
 				"<pre><code class=\"language-go\">",
-				"fmt.Println(\"hello\")",
+				"fmt.Println(&quot;hello&quot;)",
 			},
 		},
 	}

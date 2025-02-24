@@ -140,7 +140,7 @@ Others | 5
 
 ### Side-by-Side Charts Example
 
-When using the Goldmark extension, you can place multiple charts side by side by placing the chart blocks directly adjacent to each other:
+You can place multiple charts side by side by using the `---` separator within a single code block:
 
 ```gosvgchart
 barchart
@@ -154,8 +154,9 @@ Q1 | 850
 Q2 | 940
 Q3 | 1100
 Q4 | 1200
-```
-```gosvgchart
+
+---
+
 barchart
 title: 2024 Revenue
 width: 450

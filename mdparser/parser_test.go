@@ -235,4 +235,46 @@ C | 30`
 			t.Error("Expected bullet point format for multiple errors")
 		}
 	}
+	
+	// Test multiple charts in single code block
+	multipleChartsMD := `linechart
+title: First Chart
+width: 400
+height: 300
+colors: #ff0000
+
+data:
+A | 10
+B | 20
+
+---
+
+barchart
+title: Second Chart
+width: 400
+height: 300
+colors: #00ff00
+
+data:
+X | 30
+Y | 40`
+
+	multiChartSVG, err := ParseMarkdownChart(multipleChartsMD)
+	if err != nil {
+		t.Errorf("Error parsing multiple charts: %v", err)
+	}
+	
+	if !strings.Contains(multiChartSVG, "display: flex") {
+		t.Error("Multiple charts should be wrapped in a flex container")
+	}
+	
+	if !strings.Contains(multiChartSVG, "First Chart") || !strings.Contains(multiChartSVG, "Second Chart") {
+		t.Error("Multiple charts SVG doesn't contain both chart titles")
+	}
+	
+	// Count SVG tags to ensure both charts are rendered
+	svgCount := strings.Count(multiChartSVG, "<svg")
+	if svgCount != 2 {
+		t.Errorf("Expected 2 SVG elements, got %d", svgCount)
+	}
 }

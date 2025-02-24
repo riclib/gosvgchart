@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Side-by-side charts now require a single code block with multiple chart definitions separated by `---` instead of multiple adjacent code blocks
+
 ## [0.2.1] - 2025-02-25
 
 ### Added
