@@ -85,6 +85,9 @@ func main() {
 				.examples { margin-top: 20px; }
 				.example { margin-bottom: 10px; }
 				.output { margin-top: 20px; }
+				.error-box { border: 2px solid #e74c3c; background-color: #ffeaea; padding: 15px; border-radius: 5px; }
+				.error-heading { color: #e74c3c; margin-top: 0; }
+				.error-content { font-family: monospace; white-space: pre-wrap; }
 			</style>
 		</head>
 		<body>
@@ -174,16 +177,30 @@ Others | 5</pre>
 					})
 					.then(response => {
 						if (response.ok) {
-							return response.text();
+							return response.text().then(text => {
+								return { success: true, content: text };
+							});
+						} else {
+							return response.text().then(text => {
+								return { success: false, error: text };
+							});
 						}
-						throw new Error('Network response was not ok');
 					})
-					.then(svg => {
-						document.getElementById('chartOutput').innerHTML = svg;
+					.then(result => {
+						if (result.success) {
+							document.getElementById('chartOutput').innerHTML = result.content;
+						} else {
+							const errorMsg = result.error.replace(/\n• /g, '<br>• ');
+							document.getElementById('chartOutput').innerHTML = 
+								'<div class="error-box">' +
+								'<h3 class="error-heading">Chart Error</h3>' +
+								'<div class="error-content">' + errorMsg + '</div>' +
+								'</div>';
+						}
 					})
 					.catch(error => {
 						console.error('Error:', error);
-						document.getElementById('chartOutput').innerHTML = '<p>Error generating chart</p>';
+						document.getElementById('chartOutput').innerHTML = '<p>Error connecting to server</p>';
 					});
 				}
 				
