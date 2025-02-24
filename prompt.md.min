@@ -1,0 +1,46 @@
+# Chart Format
+
+```gosvgchart
+charttype
+title: Title
+width: 800
+height: 500
+colors: #color1, #color2
+
+data:
+Label1 | Value1
+Label2 | Value2
+```
+
+## Types
+`linechart`: trends/time
+`barchart`: categories
+`piechart`: proportions
+`heatmapchart`: activity over time (GitHub-style)
+
+## Properties
+- title, width, height, colors (hex codes)
+- data: `Label | Value` (one per line)
+
+## Multiple Charts
+Use `---` separator:
+```gosvgchart
+chart1...
+data...
+---
+chart2...
+data...
+```
+
+## Example
+```gosvgchart
+barchart
+title: Sales
+width: 700
+height: 400
+colors: #3498db, #e74c3c
+
+data:
+Q1 | 850
+Q2 | 940
+```

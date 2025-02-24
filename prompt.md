@@ -26,6 +26,7 @@ Choose one of these chart types based on the data:
 - `linechart` - For time series or trends over a continuous range
 - `barchart` - For comparing values across categories
 - `piechart` - For showing proportions of a whole
+- `heatmapchart` - For showing activity patterns over time (GitHub-style)
 
 ### Properties
 
@@ -123,6 +124,28 @@ Europe | 28
 Asia | 22
 South America | 10
 Other | 5
+```
+
+### Heatmap Chart Example
+
+```gosvgchart
+heatmapchart
+title: GitHub Contributions
+width: 800
+height: 200
+colors: #ebedf0, #9be9a8, #40c463, #30a14e, #216e39
+
+data:
+2025-01-01 | 5
+2025-01-05 | 12
+2025-01-10 | 3
+2025-01-15 | 15
+2025-01-20 | 8
+2025-01-25 | 4
+2025-02-01 | 7
+2025-02-05 | 14
+2025-02-10 | 6
+2025-02-15 | 11
 ```
 
 ### Side-by-Side Comparison Example

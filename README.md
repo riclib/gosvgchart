@@ -15,6 +15,7 @@ A simple, declarative SVG chart library for Go. This library allows you to creat
   - Line charts
   - Bar charts
   - Pie/Donut charts
+  - Heatmap charts (GitHub-style activity heatmap)
 - Customizable styling and options
 
 ## Installation
@@ -83,6 +84,44 @@ chart.SetDonutHole(0.6) // 0-0.9, where 0 is a pie chart and 0.9 is a thin donut
 svg := chart.Render()
 ```
 
+### Heatmap Chart (GitHub-style)
+
+```go
+import (
+    "github.com/riclib/gosvgchart"
+    "time"
+)
+
+// Create a heatmap chart
+chart := gosvgchart.NewHeatmapChart().
+    SetTitle("GitHub Contributions").
+    SetSize(800, 200)
+
+// Set activity data (dates must be in YYYY-MM-DD format)
+chart.SetLabels([]string{
+    "2025-01-01", "2025-01-05", "2025-01-10", 
+    "2025-01-15", "2025-01-20", "2025-01-25",
+    "2025-02-01", "2025-02-05", "2025-02-10",
+    "2025-02-15",
+}).
+SetData([]float64{5, 12, 3, 15, 8, 4, 7, 14, 6, 11})
+
+// Optional customization
+chart.SetCellSize(15).          // Size of each cell
+      SetCellSpacing(3).        // Space between cells
+      SetCellRounding(2).       // Corner radius
+      SetMaxValue(15).          // Maximum value for color scaling (0 for auto)
+      SetDateFormat("2006-01-02") // Go time format string
+
+// GitHub-style green gradient colors (light to dark)
+chart.SetColors([]string{
+    "#ebedf0", "#9be9a8", "#40c463", "#30a14e", "#216e39",
+})
+
+// Render to SVG string
+svg := chart.Render()
+```
+
 ## Markdown Chart Format
 
 For an even simpler way to create charts, especially when working with LLMs or in text environments, you can use the markdown-like format:
@@ -136,6 +175,27 @@ Product B | 25
 Product C | 20
 Product D | 15
 Others | 5
+```
+
+### Heatmap Chart Example
+
+```gosvgchart
+heatmapchart
+title: GitHub Contribution Activity
+width: 800
+height: 200
+colors: #ebedf0, #9be9a8, #40c463, #30a14e, #216e39
+
+data:
+2025-01-01 | 5
+2025-01-03 | 8
+2025-01-10 | 3
+2025-01-15 | 15
+2025-01-24 | 10
+2025-02-01 | 7
+2025-02-05 | 14
+2025-02-15 | 11
+2025-02-24 | 10
 ```
 
 ### Side-by-Side Charts Example
@@ -267,6 +327,18 @@ All chart types share these common methods:
 | Method | Description |
 |--------|-------------|
 | `SetDonutHole(percentage float64)` | Sets the inner circle size (0-0.9) |
+
+### Heatmap Chart
+
+| Method | Description |
+|--------|-------------|
+| `SetCellSize(size int)` | Sets the size of each cell in pixels |
+| `SetCellSpacing(spacing int)` | Sets the spacing between cells |
+| `SetCellRounding(radius int)` | Sets the corner radius of cells |
+| `SetDateFormat(format string)` | Sets the date format (Go time format) |
+| `SetMaxValue(max float64)` | Sets the maximum value for color scaling |
+| `SetDayLabels(labels []string)` | Sets the labels for days of the week |
+| `SetMonthLabels(labels []string)` | Sets the labels for months |
 
 ## Design Philosophy
 

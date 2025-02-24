@@ -179,6 +179,27 @@ Product B | 25
 Product C | 20
 Product D | 15
 Others | 5</pre>
+						</div>
+						
+						<div class="example">
+							<h4>Heatmap Chart</h4>
+							<pre>heatmapchart
+title: GitHub Contribution Activity
+width: 800
+height: 200
+colors: #ebedf0, #9be9a8, #40c463, #30a14e, #216e39
+
+data:
+2025-01-01 | 5
+2025-01-05 | 12
+2025-01-10 | 3
+2025-01-15 | 15
+2025-01-20 | 8
+2025-01-25 | 4
+2025-02-01 | 7
+2025-02-05 | 14
+2025-02-10 | 6
+2025-02-15 | 11</pre>
 					</div>
 				</div>
 			</div>
@@ -222,6 +243,28 @@ Mar | 180
 Apr | 310
 May | 270
 Jun | 390
+` + "```" + `
+
+## Developer Activity
+
+` + "```gosvgchart" + `
+heatmapchart
+title: GitHub Contributions
+width: 800
+height: 200
+colors: #ebedf0, #9be9a8, #40c463, #30a14e, #216e39
+
+data:
+2025-01-01 | 5
+2025-01-05 | 12
+2025-01-10 | 3
+2025-01-15 | 15
+2025-01-20 | 8
+2025-01-25 | 4
+2025-02-01 | 7
+2025-02-05 | 14
+2025-02-10 | 6
+2025-02-15 | 11
 ` + "```" + `
 
 ## Side-by-Side Charts

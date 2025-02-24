@@ -107,10 +107,11 @@ func parseChartDefinition(markdown string, chartIndex int) (ChartDefinition, err
 		"line": true, "linechart": true,
 		"bar": true, "barchart": true,
 		"pie": true, "piechart": true,
+		"heatmap": true, "heatmapchart": true,
 	}
 	
 	if !validTypes[chartDef.ChartType] {
-		return chartDef, fmt.Errorf("unknown chart type '%s'. Must be one of: linechart, barchart, piechart", chartDef.ChartType)
+		return chartDef, fmt.Errorf("unknown chart type '%s'. Must be one of: linechart, barchart, piechart, heatmapchart", chartDef.ChartType)
 	}
 	
 	// Parse configuration and data
@@ -241,6 +242,8 @@ func renderChartFromDefinition(chartDef ChartDefinition) (string, error) {
 		chart = gosvgchart.NewBarChart()
 	case "pie", "piechart":
 		chart = gosvgchart.NewPieChart()
+	case "heatmap", "heatmapchart":
+		chart = gosvgchart.NewHeatmapChart()
 	}
 	
 	// Set basic properties
