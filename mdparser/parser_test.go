@@ -1,6 +1,7 @@
 package mdparser
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 )
@@ -59,6 +60,37 @@ Z | 150`
 	
 	if !strings.Contains(barSVG, "Test Bar Chart") {
 		t.Error("Bar chart doesn't contain title")
+	}
+	
+	// Test Auto-Height
+	autoHeightMD := `barchart
+title: Auto Height Chart
+width: 600
+height: auto
+colors: #00ff00
+
+data:
+X | 100
+Y | 200
+Z | 150`
+
+	autoHeightSVG, err := ParseMarkdownChart(autoHeightMD)
+	if err != nil {
+		t.Errorf("Error parsing auto-height chart: %v", err)
+	}
+	
+	if !strings.Contains(autoHeightSVG, "<svg") || !strings.Contains(autoHeightSVG, "</svg>") {
+		t.Error("Auto-height chart SVG doesn't contain SVG tags")
+	}
+	
+	if !strings.Contains(autoHeightSVG, "Auto Height Chart") {
+		t.Error("Auto-height chart doesn't contain title")
+	}
+	
+	// For bar chart with auto-height, height should be width * 9 / 16 = 600 * 9 / 16 = 337.5 ~ 337
+	expectedHeight := 337
+	if !strings.Contains(autoHeightSVG, fmt.Sprintf("height=\"%d\"", expectedHeight)) {
+		t.Errorf("Auto-height chart doesn't have correct auto-calculated height: %s", autoHeightSVG)
 	}
 	
 	// Test Pie Chart

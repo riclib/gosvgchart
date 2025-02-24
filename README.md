@@ -84,6 +84,24 @@ chart.SetDonutHole(0.6) // 0-0.9, where 0 is a pie chart and 0.9 is a thin donut
 svg := chart.Render()
 ```
 
+### Using Auto-Height with the Go API
+
+You can use the `SetAutoHeight` method to automatically calculate the height based on the width:
+
+```go
+// Create a chart with auto-height
+chart := gosvgchart.New().
+    SetTitle("Monthly Sales").
+    SetData([]float64{120, 250, 180, 310, 270, 390}).
+    SetLabels([]string{"Jan", "Feb", "Mar", "Apr", "May", "Jun"}).
+    SetColors([]string{"#3498db"}).
+    SetSize(800, 0). // Height will be ignored when auto-height is enabled
+    SetAutoHeight(true)
+
+// Render to SVG string
+svg := chart.Render()
+```
+
 ### Heatmap Chart (GitHub-style)
 
 ```go
@@ -175,6 +193,26 @@ Product B | 25
 Product C | 20
 Product D | 15
 Others | 5
+```
+
+### Using Auto-Height
+
+You can specify `height: auto` to automatically calculate the height based on the width:
+
+```gosvgchart
+linechart
+title: Revenue with Auto Height
+width: 800
+height: auto
+colors: #3498db
+
+data:
+Jan | 120
+Feb | 250
+Mar | 180
+Apr | 310
+May | 270
+Jun | 390
 ```
 
 ### Heatmap Chart Example
@@ -301,6 +339,7 @@ All chart types share these common methods:
 |--------|-------------|
 | `SetTitle(title string)` | Sets the chart title |
 | `SetSize(width, height int)` | Sets the chart dimensions in pixels |
+| `SetAutoHeight(auto bool)` | Enables automatic height calculation based on width (16:9 ratio for standard charts, 250px for heatmaps) |
 | `SetData(data []float64)` | Sets the chart data values |
 | `SetLabels(labels []string)` | Sets the chart labels |
 | `SetColors(colors []string)` | Sets the color palette as hex values (e.g., "#ff0000") |

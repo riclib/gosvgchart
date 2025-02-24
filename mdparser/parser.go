@@ -18,6 +18,7 @@ type ChartDefinition struct {
 	Colors    []string
 	Data      []float64
 	Labels    []string
+	AutoHeight bool
 }
 
 // ParseMarkdownChart parses a chart specification from markdown text format
@@ -94,6 +95,7 @@ func parseChartDefinition(markdown string, chartIndex int) (ChartDefinition, err
 	chartDef.Width = 800
 	chartDef.Height = 500
 	chartDef.Title = "Chart"
+	chartDef.AutoHeight = false
 	
 	if len(lines) < 3 {
 		return chartDef, fmt.Errorf("chart format invalid - too few lines. Need at least chart type, configuration, and data sections")
@@ -187,10 +189,15 @@ func parseChartDefinition(markdown string, chartIndex int) (ChartDefinition, err
 					configErrors = append(configErrors, fmt.Sprintf("line %d: invalid width value '%s' - must be a positive number", i+1, value))
 				}
 			case "height":
-				if h, err := strconv.Atoi(value); err == nil && h > 0 {
+				if strings.ToLower(value) == "auto" {
+					// Set auto-height flag
+					chartDef.AutoHeight = true
+					// Set a default height, will be recalculated in renderChartFromDefinition
+					chartDef.Height = 0
+				} else if h, err := strconv.Atoi(value); err == nil && h > 0 {
 					chartDef.Height = h
 				} else {
-					configErrors = append(configErrors, fmt.Sprintf("line %d: invalid height value '%s' - must be a positive number", i+1, value))
+					configErrors = append(configErrors, fmt.Sprintf("line %d: invalid height value '%s' - must be a positive number or 'auto'", i+1, value))
 				}
 			case "colors":
 				colorList := parseList(value)
@@ -248,7 +255,14 @@ func renderChartFromDefinition(chartDef ChartDefinition) (string, error) {
 	
 	// Set basic properties
 	chart.SetTitle(chartDef.Title)
-	chart.SetSize(chartDef.Width, chartDef.Height)
+	
+	// Handle auto-height
+	if chartDef.AutoHeight {
+		chart.SetSize(chartDef.Width, 0)
+		chart.SetAutoHeight(true)
+	} else {
+		chart.SetSize(chartDef.Width, chartDef.Height)
+	}
 	
 	if len(chartDef.Colors) > 0 {
 		chart.SetColors(chartDef.Colors)

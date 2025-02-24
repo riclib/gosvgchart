@@ -12,6 +12,7 @@ import (
 type Chart interface {
 	SetTitle(title string) Chart
 	SetSize(width, height int) Chart
+	SetAutoHeight(auto bool) Chart
 	SetData(data []float64) Chart
 	SetLabels(labels []string) Chart
 	SetColors(colors []string) Chart
@@ -20,16 +21,17 @@ type Chart interface {
 
 // BaseChart contains common properties and methods for all chart types
 type BaseChart struct {
-	ChartType  string
-	Title      string
-	Width      int
-	Height     int
-	Data       []float64
-	Labels     []string
-	Colors     []string
-	ShowTitle  bool
-	ShowLegend bool
-	Margin     struct {
+	ChartType      string
+	Title          string
+	Width          int
+	Height         int
+	AutoHeight     bool
+	Data           []float64
+	Labels         []string
+	Colors         []string
+	ShowTitle      bool
+	ShowLegend     bool
+	Margin         struct {
 		Top    int
 		Right  int
 		Bottom int
@@ -83,6 +85,7 @@ func NewLineChart() *LineChart {
 			ChartType:       "line",
 			Width:           800,
 			Height:          500,
+			AutoHeight:      false,
 			ShowTitle:       true,
 			ShowLegend:      true,
 			BackgroundColor: "#ffffff",
@@ -109,6 +112,7 @@ func NewBarChart() *BarChart {
 			ChartType:       "bar",
 			Width:           800,
 			Height:          500,
+			AutoHeight:      false,
 			ShowTitle:       true,
 			ShowLegend:      true,
 			BackgroundColor: "#ffffff",
@@ -135,6 +139,7 @@ func NewPieChart() *PieChart {
 			ChartType:       "pie",
 			Width:           800,
 			Height:          500,
+			AutoHeight:      false,
 			ShowTitle:       true,
 			ShowLegend:      true,
 			BackgroundColor: "#ffffff",
@@ -160,6 +165,7 @@ func NewHeatmapChart() *HeatmapChart {
 			ChartType:       "heatmap",
 			Width:           800,
 			Height:          200,
+			AutoHeight:      false,
 			ShowTitle:       true,
 			ShowLegend:      true,
 			BackgroundColor: "#ffffff",
@@ -196,6 +202,13 @@ func (c *LineChart) SetTitle(title string) Chart {
 func (c *LineChart) SetSize(width, height int) Chart {
 	c.Width = width
 	c.Height = height
+	c.AutoHeight = false
+	return c
+}
+
+// SetAutoHeight enables automatic height calculation based on width
+func (c *LineChart) SetAutoHeight(auto bool) Chart {
+	c.AutoHeight = auto
 	return c
 }
 
@@ -229,6 +242,13 @@ func (c *BarChart) SetTitle(title string) Chart {
 func (c *BarChart) SetSize(width, height int) Chart {
 	c.Width = width
 	c.Height = height
+	c.AutoHeight = false
+	return c
+}
+
+// SetAutoHeight enables automatic height calculation based on width
+func (c *BarChart) SetAutoHeight(auto bool) Chart {
+	c.AutoHeight = auto
 	return c
 }
 
@@ -262,6 +282,13 @@ func (c *PieChart) SetTitle(title string) Chart {
 func (c *PieChart) SetSize(width, height int) Chart {
 	c.Width = width
 	c.Height = height
+	c.AutoHeight = false
+	return c
+}
+
+// SetAutoHeight enables automatic height calculation based on width
+func (c *PieChart) SetAutoHeight(auto bool) Chart {
+	c.AutoHeight = auto
 	return c
 }
 
@@ -295,6 +322,13 @@ func (c *HeatmapChart) SetTitle(title string) Chart {
 func (c *HeatmapChart) SetSize(width, height int) Chart {
 	c.Width = width
 	c.Height = height
+	c.AutoHeight = false
+	return c
+}
+
+// SetAutoHeight enables automatic height calculation based on width
+func (c *HeatmapChart) SetAutoHeight(auto bool) Chart {
+	c.AutoHeight = auto
 	return c
 }
 
@@ -398,6 +432,12 @@ func (c *PieChart) SetDonutHole(percentage float64) *PieChart {
 func (c *LineChart) Render() string {
 	var svg strings.Builder
 	
+	// Apply auto-height if enabled
+	if c.AutoHeight {
+		// For standard charts, use a 16:9 aspect ratio (common screen format)
+		c.Height = c.Width * 9 / 16
+	}
+	
 	svg.WriteString(fmt.Sprintf(`<svg width="%d" height="%d" xmlns="http://www.w3.org/2000/svg">`, c.Width, c.Height))
 	
 	// Background
@@ -489,6 +529,12 @@ func (c *LineChart) Render() string {
 func (c *BarChart) Render() string {
 	var svg strings.Builder
 	
+	// Apply auto-height if enabled
+	if c.AutoHeight {
+		// For standard charts, use a 16:9 aspect ratio (common screen format)
+		c.Height = c.Width * 9 / 16
+	}
+	
 	svg.WriteString(fmt.Sprintf(`<svg width="%d" height="%d" xmlns="http://www.w3.org/2000/svg">`, c.Width, c.Height))
 	
 	// Background
@@ -562,6 +608,13 @@ func (c *BarChart) Render() string {
 // Render renders the pie chart to an SVG string
 func (c *PieChart) Render() string {
 	var svg strings.Builder
+	
+	// Apply auto-height if enabled
+	if c.AutoHeight {
+		// For pie charts, a square aspect is usually better
+		// But we'll still use 16:9 for consistency
+		c.Height = c.Width * 9 / 16
+	}
 	
 	svg.WriteString(fmt.Sprintf(`<svg width="%d" height="%d" xmlns="http://www.w3.org/2000/svg">`, c.Width, c.Height))
 	
@@ -674,6 +727,12 @@ func (c *PieChart) Render() string {
 // Render renders the heatmap chart to an SVG string
 func (c *HeatmapChart) Render() string {
 	var svg strings.Builder
+
+	// Apply auto-height if enabled
+	if c.AutoHeight {
+		// For heatmap chart, use a fixed height of 250px as specified
+		c.Height = 250
+	}
 
 	svg.WriteString(fmt.Sprintf(`<svg width="%d" height="%d" xmlns="http://www.w3.org/2000/svg">`, c.Width, c.Height))
 	

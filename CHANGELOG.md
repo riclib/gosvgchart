@@ -7,8 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2025-02-25
+
 ### Added
 - Added new heatmap chart type for GitHub-style contribution/activity charts
+- Added auto-height option for all chart types
+  - Line, Bar, and Pie charts now use a standard 16:9 aspect ratio when auto-height is enabled
+  - Heatmap charts use a fixed 250px height when auto-height is enabled
+  - Can be specified in markdown format with `height: auto`
 
 ## [0.3.0] - 2025-02-25
 
