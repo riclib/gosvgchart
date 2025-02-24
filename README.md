@@ -89,7 +89,7 @@ For an even simpler way to create charts, especially when working with LLMs or i
 
 ### Line Chart Example
 
-```
+```gosvgchart
 linechart
 title: Monthly Sales
 width: 600
@@ -107,7 +107,7 @@ Jun | 390
 
 ### Bar Chart Example
 
-```
+```gosvgchart
 barchart
 title: Quarterly Revenue
 width: 600
@@ -123,7 +123,7 @@ Q4 | 1200
 
 ### Pie Chart Example
 
-```
+```gosvgchart
 piechart
 title: Market Share
 width: 600
@@ -136,6 +136,37 @@ Product B | 25
 Product C | 20
 Product D | 15
 Others | 5
+```
+
+### Side-by-Side Charts Example
+
+When using the Goldmark extension, you can place multiple charts side by side by placing the chart blocks directly adjacent to each other:
+
+```gosvgchart
+barchart
+title: 2023 Revenue
+width: 450
+height: 300
+colors: #3498db, #2ecc71
+
+data:
+Q1 | 850
+Q2 | 940
+Q3 | 1100
+Q4 | 1200
+```
+```gosvgchart
+barchart
+title: 2024 Revenue
+width: 450
+height: 300
+colors: #e74c3c, #f39c12
+
+data:
+Q1 | 950
+Q2 | 1040
+Q3 | 1200
+Q4 | 1400
 ```
 
 ## Command Line Tools
