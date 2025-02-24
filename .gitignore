@@ -23,3 +23,11 @@ go.work
 
 # macOS
 .DS_Store
+
+# Generated files
+*.svg
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
