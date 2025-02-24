@@ -153,7 +153,59 @@ func (r *ChartRenderer) renderChart(w util.BufWriter, source []byte, node ast.No
 		return ast.WalkContinue, nil
 	}
 
-	// Write the SVG to the output
-	w.WriteString(svg)
-	return ast.WalkContinue, nil
+	// Check if next node is also a chart - if so, we'll need to render side by side
+	var nextNode ast.Node = node.NextSibling()
+	var isMultiChart bool
+	
+	// Count how many chart nodes we have in sequence
+	var chartCount int = 1
+	for nextNode != nil {
+		if _, ok := nextNode.(*ChartNode); ok {
+			chartCount++
+			nextNode = nextNode.NextSibling()
+		} else {
+			break
+		}
+	}
+	
+	isMultiChart = chartCount > 1
+	
+	// If this is part of a multi-chart sequence, wrap it in a div with flex styling
+	if isMultiChart {
+		// Check if this is the first chart in the sequence
+		prevNode := node.PreviousSibling()
+		isFirstChart := true
+		
+		if prevNode != nil {
+			_, isPrevChart := prevNode.(*ChartNode)
+			isFirstChart = !isPrevChart
+		}
+		
+		// If first chart, start the flex container
+		if isFirstChart {
+			w.WriteString(`<div style="display: flex; flex-wrap: wrap; justify-content: space-around; align-items: center; gap: 20px; margin: 20px 0;">`)
+		}
+		
+		// Wrap this chart in a flex item
+		w.WriteString(`<div style="flex: 1; min-width: 300px; max-width: 48%;">`)
+		w.WriteString(svg)
+		w.WriteString(`</div>`)
+		
+		// If last chart in the sequence, close the flex container
+		isLastChart := true
+		nextNode = node.NextSibling()
+		if nextNode != nil {
+			_, isNextChart := nextNode.(*ChartNode)
+			isLastChart = !isNextChart
+		}
+		
+		if isLastChart {
+			w.WriteString(`</div>`)
+		}
+	} else {
+		// Single chart, just output the SVG
+		w.WriteString(svg)
+	}
+	
+	return ast.WalkSkipChildren, nil
 }

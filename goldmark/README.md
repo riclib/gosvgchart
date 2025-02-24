@@ -121,6 +121,84 @@ Others | 5
 ```
 ````
 
+## Side-by-Side Charts
+
+When you place multiple chart code blocks directly next to each other without any text in between, the extension will automatically render them side-by-side in a responsive layout:
+
+````markdown
+## Revenue Comparison
+
+```gosvgchart
+barchart
+title: 2023 Revenue
+width: 500
+height: 300
+colors: #3498db, #2ecc71
+
+data:
+Q1 | 850
+Q2 | 940
+Q3 | 1100
+Q4 | 1200
+```
+```gosvgchart
+barchart
+title: 2024 Revenue
+width: 500
+height: 300
+colors: #e74c3c, #f39c12
+
+data:
+Q1 | 950
+Q2 | 1040
+Q3 | 1200
+Q4 | 1400
+```
+````
+
+You can also place three or more charts side by side, and they will automatically wrap to new lines on smaller screens:
+
+````markdown
+## Regional Market Share
+
+```gosvgchart
+piechart
+title: North Region
+width: 300
+height: 300
+colors: #3498db, #2ecc71, #e74c3c
+
+data:
+Product A | 45
+Product B | 35
+Product C | 20
+```
+```gosvgchart
+piechart
+title: South Region
+width: 300
+height: 300
+colors: #3498db, #2ecc71, #e74c3c
+
+data:
+Product A | 30
+Product B | 45
+Product C | 25
+```
+```gosvgchart
+piechart
+title: East Region
+width: 300
+height: 300
+colors: #3498db, #2ecc71, #e74c3c
+
+data:
+Product A | 25
+Product B | 25
+Product C | 50
+```
+````
+
 ## Error Handling
 
 If there's an error in your chart definition, the extension will output an HTML comment with the error message instead of the SVG chart.

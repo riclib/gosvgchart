@@ -187,7 +187,7 @@ Others | 5</pre>
 				<p>This tab shows how to use the Goldmark extension to include charts in your markdown documents.</p>
 				
 				<h3>Edit markdown with chart code blocks:</h3>
-				<textarea id="goldmarkText" style="height: 350px;">
+				<textarea id="goldmarkText" style="height: 450px;">
 # Sales Report
 
 ## Quarterly Revenue
@@ -222,6 +222,36 @@ Mar | 180
 Apr | 310
 May | 270
 Jun | 390
+` + "```" + `
+
+## Side-by-Side Charts
+Charts placed next to each other will display side-by-side:
+
+` + "```gosvgchart" + `
+barchart
+title: 2023 Revenue
+width: 450
+height: 300
+colors: #3498db, #2ecc71
+
+data:
+Q1 | 850
+Q2 | 940
+Q3 | 1100
+Q4 | 1200
+` + "```" + `
+` + "```gosvgchart" + `
+barchart
+title: 2024 Revenue
+width: 450
+height: 300
+colors: #e74c3c, #f39c12
+
+data:
+Q1 | 950
+Q2 | 1040
+Q3 | 1200
+Q4 | 1400
 ` + "```" + `
 				</textarea>
 				
@@ -327,6 +357,7 @@ if err := markdown.Convert([]byte(markdownContent), &output); err != nil {
 					var chartContent = "";
 					var chartType = "";
 					var chartCount = 0;
+					var consecutiveCharts = [];
 					
 					for (var i = 0; i < lines.length; i++) {
 						var line = lines[i];
@@ -343,34 +374,79 @@ if err := markdown.Convert([]byte(markdownContent), &output); err != nil {
 							if (line.trim() === "` + "```" + `") {
 								inChartBlock = false;
 								
-								// Create a unique ID for this chart
-								var chartId = "chart-" + chartCount;
+								// Store this chart to check for consecutive charts
+								consecutiveCharts.push({
+									content: chartContent,
+									type: chartType
+								});
 								
-								// Add a placeholder for the chart
-								output += '<div id="' + chartId + '" class="chart-placeholder">Loading chart...</div>';
+								// Process the next line to see if it's another chart
+								if (i + 1 < lines.length && lines[i + 1].trim() === "` + "```gosvgchart" + `") {
+									// This is a consecutive chart, continue to the next iteration
+									continue;
+								}
 								
-								// Use closure to capture chartId and chartContent
-								(function(id, content) {
-									// Render the chart
-									fetch("/chart", {
-										method: "POST",
-										body: content
-									})
-									.then(function(response) {
-										if (response.ok) {
-											return response.text();
-										} else {
-											return "<!-- Chart error -->";
-										}
-									})
-									.then(function(svg) {
-										// Find the placeholder and replace it
-										var placeholder = document.getElementById(id);
-										if (placeholder) {
-											placeholder.innerHTML = svg;
-										}
-									});
-								})(chartId, chartContent);
+								// If we get here, we need to render the charts we've collected
+								if (consecutiveCharts.length > 1) {
+									// Multiple charts - render side by side
+									output += '<div style="display: flex; flex-wrap: wrap; justify-content: space-around; align-items: center; gap: 20px; margin: 20px 0;">';
+									
+									for (var j = 0; j < consecutiveCharts.length; j++) {
+										var chartId = "chart-" + chartCount + "-" + (j + 1);
+										output += '<div id="' + chartId + '" style="flex: 1; min-width: 300px; max-width: 48%;" class="chart-placeholder">Loading chart...</div>';
+										
+										// Use closure to capture chart details
+										(function(id, content) {
+											fetch("/chart", {
+												method: "POST",
+												body: content
+											})
+											.then(function(response) {
+												if (response.ok) {
+													return response.text();
+												} else {
+													return "<!-- Chart error -->";
+												}
+											})
+											.then(function(svg) {
+												var placeholder = document.getElementById(id);
+												if (placeholder) {
+													placeholder.innerHTML = svg;
+												}
+											});
+										})(chartId, consecutiveCharts[j].content);
+									}
+									
+									output += '</div>';
+									consecutiveCharts = [];
+								} else {
+									// Single chart
+									var chartId = "chart-" + chartCount;
+									output += '<div id="' + chartId + '" class="chart-placeholder">Loading chart...</div>';
+									
+									// Use closure to capture chartId and chartContent
+									(function(id, content) {
+										fetch("/chart", {
+											method: "POST",
+											body: content
+										})
+										.then(function(response) {
+											if (response.ok) {
+												return response.text();
+											} else {
+												return "<!-- Chart error -->";
+											}
+										})
+										.then(function(svg) {
+											var placeholder = document.getElementById(id);
+											if (placeholder) {
+												placeholder.innerHTML = svg;
+											}
+										});
+									})(chartId, consecutiveCharts[0].content);
+									
+									consecutiveCharts = [];
+								}
 								
 								continue;
 							}
