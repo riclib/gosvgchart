@@ -1,11 +1,10 @@
 package mdparser
 
 import (
-	"bufio"
 	"fmt"
 	"strconv"
 	"strings"
-
+	
 	"github.com/riclib/gosvgchart"
 )
 
@@ -28,9 +27,9 @@ func ParseMarkdownChart(markdown string) (string, error) {
 	case "line", "linechart":
 		chart = gosvgchart.New()
 	case "bar", "barchart":
-		chart = gosvgchart.New()
+		chart = gosvgchart.NewBarChart()
 	case "pie", "piechart":
-		chart = gosvgchart.New()
+		chart = gosvgchart.NewPieChart()
 	default:
 		return "", fmt.Errorf("unknown chart type: %s", chartType)
 	}
@@ -44,46 +43,66 @@ func ParseMarkdownChart(markdown string) (string, error) {
 	var data []float64
 	var labels []string
 	var colors []string
+	var dataStarted bool = false
 	
-	scanner := bufio.NewScanner(strings.NewReader(markdown))
-	scanner.Scan() // Skip first line (chart type)
-	
-	// Parse configuration lines
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
+	// Process line by line
+	for i := 1; i < len(lines); i++ { // Skip first line (chart type)
+		line := strings.TrimSpace(lines[i])
 		
 		// Skip empty lines and comments
 		if line == "" || strings.HasPrefix(line, "#") {
 			continue
 		}
 		
-		// Break at data section marker
+		// Check for data section
 		if line == "data:" {
-			break
+			dataStarted = true
+			continue
 		}
 		
-		// Parse configuration options
-		parts := strings.SplitN(line, ":", 2)
-		if len(parts) != 2 {
-			continue // Invalid line format
-		}
-		
-		key := strings.TrimSpace(strings.ToLower(parts[0]))
-		value := strings.TrimSpace(parts[1])
-		
-		switch key {
-		case "title":
-			title = value
-		case "width":
-			if w, err := strconv.Atoi(value); err == nil && w > 0 {
-				width = w
+		if dataStarted {
+			// We're in the data section
+			parts := strings.Split(line, "|")
+			
+			// If line contains a pipe, it has a label
+			if len(parts) == 2 {
+				label := strings.TrimSpace(parts[0])
+				valueStr := strings.TrimSpace(parts[1])
+				labels = append(labels, label)
+				
+				if val, err := strconv.ParseFloat(valueStr, 64); err == nil {
+					data = append(data, val)
+				}
+			} else if len(parts) == 1 && parts[0] != "" {
+				// No label, just data
+				if val, err := strconv.ParseFloat(strings.TrimSpace(parts[0]), 64); err == nil {
+					data = append(data, val)
+				}
 			}
-		case "height":
-			if h, err := strconv.Atoi(value); err == nil && h > 0 {
-				height = h
+		} else {
+			// We're in the configuration section
+			parts := strings.SplitN(line, ":", 2)
+			if len(parts) != 2 {
+				continue // Invalid line format
 			}
-		case "colors":
-			colors = parseList(value)
+			
+			key := strings.TrimSpace(strings.ToLower(parts[0]))
+			value := strings.TrimSpace(parts[1])
+			
+			switch key {
+			case "title":
+				title = value
+			case "width":
+				if w, err := strconv.Atoi(value); err == nil && w > 0 {
+					width = w
+				}
+			case "height":
+				if h, err := strconv.Atoi(value); err == nil && h > 0 {
+					height = h
+				}
+			case "colors":
+				colors = parseList(value)
+			}
 		}
 	}
 	
@@ -95,41 +114,6 @@ func ParseMarkdownChart(markdown string) (string, error) {
 		chart.SetColors(colors)
 	}
 	
-	// Parse data section
-	dataStarted := false
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		
-		// Skip empty lines and comments
-		if line == "" || strings.HasPrefix(line, "#") {
-			continue
-		}
-		
-		if line == "data:" {
-			dataStarted = true
-			continue
-		}
-		
-		if dataStarted {
-			parts := strings.SplitN(line, "|", 2)
-			
-			// If line contains a pipe, it has a label
-			if len(parts) == 2 {
-				label := strings.TrimSpace(parts[0])
-				labels = append(labels, label)
-				
-				if val, err := strconv.ParseFloat(strings.TrimSpace(parts[1]), 64); err == nil {
-					data = append(data, val)
-				}
-			} else if len(parts) == 1 {
-				// No label, just data
-				if val, err := strconv.ParseFloat(strings.TrimSpace(parts[0]), 64); err == nil {
-					data = append(data, val)
-				}
-			}
-		}
-	}
-	
 	// Set data and labels
 	chart.SetData(data)
 	if len(labels) > 0 {
@@ -139,18 +123,11 @@ func ParseMarkdownChart(markdown string) (string, error) {
 	// Apply chart-specific settings based on type
 	switch chartType {
 	case "line", "linechart":
-		if lc, ok := chart.(*gosvgchart.LineChart); ok {
-			// Apply line-specific settings here if needed
-			lc.ShowDataPoints(true)
-		}
+		// No specific settings needed
 	case "bar", "barchart":
-		if bc, ok := chart.(*gosvgchart.BarChart); ok {
-			// Apply bar-specific settings here if needed
-		}
+		// No specific settings needed
 	case "pie", "piechart":
-		if pc, ok := chart.(*gosvgchart.PieChart); ok {
-			// Apply pie-specific settings here if needed
-		}
+		// No specific settings needed
 	}
 	
 	// Render the chart
