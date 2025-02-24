@@ -8,7 +8,8 @@ A simple, declarative SVG chart library for Go. This library allows you to creat
   - Purely declarative Go API with method chaining
   - Simple markdown-like text format (great for LLM-generated charts)
   - Web server for dynamic chart generation
-- No external dependencies (uses only the Go standard library)
+  - Goldmark extension for embedding charts in markdown documents
+- No external dependencies for core functionality (uses only the Go standard library)
 - Generates SVG output that can be used in web applications or saved to files
 - Supports multiple chart types:
   - Line charts
@@ -155,6 +156,50 @@ Then visit:
 - `http://localhost:8080` for the web UI
 - `POST` to `http://localhost:8080/chart` with markdown content to get SVG
 - `GET` to `http://localhost:8080/charturl?md=linechart_n_title:Test_n_data:_n_A_p_10_n_B_p_20` to get SVG directly via URL
+
+## Goldmark Extension
+
+GoSVGChart provides a [Goldmark](https://github.com/yuin/goldmark) extension that allows you to embed charts directly in your markdown documents:
+
+```go
+import (
+    "github.com/riclib/gosvgchart/goldmark"
+    gm "github.com/yuin/goldmark"
+)
+
+// Create a new Goldmark instance with the gosvgchart extension
+markdown := gm.New(
+    gm.WithExtensions(
+        goldmark.New(),
+    ),
+)
+
+// Convert markdown to HTML with embedded SVG charts
+var output []byte
+if err := markdown.Convert([]byte(markdownContent), &output); err != nil {
+    // Handle error
+}
+```
+
+Use the extension in your markdown with fenced code blocks:
+
+````markdown
+```gosvgchart
+barchart
+title: Quarterly Revenue
+width: 600
+height: 400
+colors: #2ecc71, #e74c3c, #f39c12, #9b59b6
+
+data:
+Q1 | 850
+Q2 | 940
+Q3 | 1100
+Q4 | 1200
+```
+````
+
+For more details on the Goldmark extension, see the [goldmark directory](./goldmark/README.md).
 
 ## Common Methods (Go API)
 
