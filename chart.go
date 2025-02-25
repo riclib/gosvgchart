@@ -71,6 +71,8 @@ type BarChart struct {
 type PieChart struct {
 	BaseChart
 	DonutHolePercentage float64
+	MaxLabelLength      int  // Maximum label length before truncation
+	ShowTooltips        bool // Show tooltips on hover for truncated labels
 }
 
 // HeatmapChart implements a heatmap chart similar to GitHub's activity heatmap
@@ -166,11 +168,13 @@ func NewPieChart() *PieChart {
 			BackgroundColor: "#ffffff",
 			DarkModeSupport: true, // Enable dark mode by default
 		},
-		DonutHolePercentage: 0, // 0 means a regular pie chart
+		DonutHolePercentage: 0,    // 0 means a regular pie chart
+		MaxLabelLength:      10,   // Default to 10 characters for legend labels
+		ShowTooltips:        true, // Enable tooltips by default
 	}
 
 	chart.Margin.Top = 50
-	chart.Margin.Right = 50
+	chart.Margin.Right = 120 // Increased right margin to accommodate longer labels
 	chart.Margin.Bottom = 50
 	chart.Margin.Left = 50
 
@@ -457,6 +461,18 @@ func (c *PieChart) SetDonutHole(percentage float64) *PieChart {
 		percentage = 0.9
 	}
 	c.DonutHolePercentage = percentage
+	return c
+}
+
+// SetMaxLabelLength sets the maximum length for labels before truncation
+func (c *PieChart) SetMaxLabelLength(length int) *PieChart {
+	c.MaxLabelLength = length
+	return c
+}
+
+// EnableTooltips enables or disables tooltips for labels
+func (c *PieChart) EnableTooltips(enable bool) *PieChart {
+	c.ShowTooltips = enable
 	return c
 }
 
@@ -860,39 +876,93 @@ func (c *PieChart) Render() string {
 
 			// Label position (middle of slice)
 			labelAngle := startAngle + sliceAngle/2
-			labelDistance := float64(radius) * 0.7
+
+			// Adjust label distance based on slice size
+			// For smaller slices, move labels slightly outward
+			var labelDistance float64
+			if sliceAngle < math.Pi/6 { // Less than 30 degrees
+				// Use a slightly larger distance for small slices
+				labelDistance = float64(radius) * 0.6
+			} else {
+				// Standard distance for normal sized slices
+				labelDistance = float64(radius) * 0.7
+			}
+
 			labelX := centerX + int(math.Cos(labelAngle)*labelDistance)
 			labelY := centerY + int(math.Sin(labelAngle)*labelDistance)
 
 			// Draw percentage
 			percentage := v / total * 100
-			svg.WriteString(fmt.Sprintf(`<text x="%d" y="%d" text-anchor="middle" font-family="Arial" font-size="12" fill="white">%.1f%%</text>`,
-				labelX, labelY, percentage))
+
+			// For very small slices, show tooltip but simpler label
+			if sliceAngle < math.Pi/15 { // Less than 12 degrees
+				if percentage < 5 {
+					// For very small percentages, just show a simple dot with tooltip
+					svg.WriteString(fmt.Sprintf(`<circle cx="%d" cy="%d" r="4" fill="white"><title>%.1f%%</title></circle>`,
+						labelX, labelY, percentage))
+				} else {
+					// Show percentage with tooltip
+					svg.WriteString(fmt.Sprintf(`<text x="%d" y="%d" text-anchor="middle" font-family="Arial" font-size="10" fill="white">%.0f%%<title>%.1f%%</title></text>`,
+						labelX, labelY, percentage, percentage))
+				}
+			} else {
+				// Normal percentage text
+				svg.WriteString(fmt.Sprintf(`<text x="%d" y="%d" text-anchor="middle" font-family="Arial" font-size="12" fill="white">%.1f%%</text>`,
+					labelX, labelY, percentage))
+			}
 
 			startAngle = endAngle
 		}
 
 		// Draw legend
 		if c.ShowLegend && len(c.Labels) > 0 {
+			// Position legend based on available space
 			legendX := c.Width - c.Margin.Right + 20
 			legendY := c.Margin.Top
+
+			// Calculate total height needed for the legend
+			legendHeight := len(c.Labels) * 25
+
+			// Adjust legend position if it would go outside chart area
+			if legendY+legendHeight > c.Height-c.Margin.Bottom {
+				// Reduce spacing or move legend to better position if needed
+				legendY = int(math.Max(float64(c.Margin.Top), float64(c.Height-c.Margin.Bottom-legendHeight)))
+			}
 
 			for i, label := range c.Labels {
 				if i < len(c.Data) {
 					colorIndex := i % len(c.Colors)
 					color := c.Colors[colorIndex]
 
+					// Truncate label if needed
+					displayLabel := label
+					if c.MaxLabelLength > 0 && len(label) > c.MaxLabelLength {
+						displayLabel = label[:c.MaxLabelLength] + "…"
+					}
+
 					// Draw color box
 					svg.WriteString(fmt.Sprintf(`<rect x="%d" y="%d" width="15" height="15" fill="%s"/>`,
 						legendX, legendY, color))
 
-					// Draw label with dark mode support
-					if c.DarkModeSupport {
-						svg.WriteString(fmt.Sprintf(`<text x="%d" y="%d" font-family="Arial" font-size="12" fill="var(--chart-text)">%s</text>`,
-							legendX+20, legendY+12, label))
+					// Draw label with tooltip if needed
+					if c.ShowTooltips && displayLabel != label {
+						// Add label with tooltip
+						if c.DarkModeSupport {
+							svg.WriteString(fmt.Sprintf(`<text x="%d" y="%d" font-family="Arial" font-size="12" fill="var(--chart-text)">%s<title>%s</title></text>`,
+								legendX+20, legendY+12, displayLabel, label))
+						} else {
+							svg.WriteString(fmt.Sprintf(`<text x="%d" y="%d" font-family="Arial" font-size="12">%s<title>%s</title></text>`,
+								legendX+20, legendY+12, displayLabel, label))
+						}
 					} else {
-						svg.WriteString(fmt.Sprintf(`<text x="%d" y="%d" font-family="Arial" font-size="12">%s</text>`,
-							legendX+20, legendY+12, label))
+						// Regular label without tooltip
+						if c.DarkModeSupport {
+							svg.WriteString(fmt.Sprintf(`<text x="%d" y="%d" font-family="Arial" font-size="12" fill="var(--chart-text)">%s</text>`,
+								legendX+20, legendY+12, displayLabel))
+						} else {
+							svg.WriteString(fmt.Sprintf(`<text x="%d" y="%d" font-family="Arial" font-size="12">%s</text>`,
+								legendX+20, legendY+12, displayLabel))
+						}
 					}
 
 					legendY += 25

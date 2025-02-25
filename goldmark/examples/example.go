@@ -1,10 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"os"
+
 	"github.com/riclib/gosvgchart/goldmark"
 	gm "github.com/yuin/goldmark"
-	"os"
 )
 
 func main() {
@@ -127,14 +129,14 @@ Product Z | 50
 `
 
 	// Convert markdown to HTML
-	var output []byte
-	if err := markdown.Convert([]byte(markdownContent), &output); err != nil {
+	var buf bytes.Buffer
+	if err := markdown.Convert([]byte(markdownContent), &buf); err != nil {
 		fmt.Println("Error converting markdown:", err)
 		os.Exit(1)
 	}
 
 	// Save the output to an HTML file
-	if err := os.WriteFile("output.html", output, 0644); err != nil {
+	if err := os.WriteFile("output.html", buf.Bytes(), 0644); err != nil {
 		fmt.Println("Error writing output file:", err)
 		os.Exit(1)
 	}

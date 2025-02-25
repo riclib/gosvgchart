@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.1] - 2025-02-26
+
+### Added
+- Improved pie chart label handling with truncation and tooltips
+- Label length limiting to avoid text overflow with `SetMaxLabelLength()` method
+- Tooltip support for truncated labels and small pie slices
+- Better positioning algorithm for labels in small pie slices
+
+### Fixed
+- Fixed issue with pie chart legend labels getting cut off when labels are long
+- Optimized legend placement to prevent overlap with chart content
+- Better handling of very small pie slices with tooltips for readability
+
 ## [0.5.0] - 2025-03-01
 
 ### Added
