@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2025-03-01
+
+### Added
+- Dark mode support for all chart types
+  - Automatic adaptation to user's system color scheme preference
+  - Customizable dark and light themes via API
+  - Dark mode enabled by default with sensible defaults
+- Improved heatmap chart with adaptivity features:
+  - Auto-sizing cells based on available space
+  - Single-letter day labels (S, M, T, W, T, F, S)
+  - Better calendar visualization with responsive layout
+- Comprehensive examples command in `cmd/examples` with:
+  - Heatmap examples showing adaptivity at different sizes
+  - Dark mode compatible line, bar, and pie chart examples
+  - Command-line interface to run different example types
+
+### Changed
+- Updated heatmap chart to calculate optimal cell size based on container dimensions
+- Improved documentation with details on dark mode usage and heatmap adaptivity
+- Deprecated explicit day labels for heatmap in favor of automatic single-letter labels
+
 ## [0.4.0] - 2025-02-25
 
 ### Added

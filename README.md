@@ -17,6 +17,49 @@ A simple, declarative SVG chart library for Go. This library allows you to creat
   - Pie/Donut charts
   - Heatmap charts (GitHub-style activity heatmap)
 - Customizable styling and options
+- Automatic dark mode support for system color scheme adaptation
+
+## Dark Mode Support
+
+SVGs created with GoSVGChart automatically adapt to the user's system color scheme preference (light/dark mode). This feature uses CSS and the `prefers-color-scheme` media query to switch between defined color themes without requiring JavaScript.
+
+### Dark Mode (Enabled by Default)
+
+All charts created with GoSVGChart have dark mode support enabled by default. This means your charts will automatically adapt to the user's system preferences without any additional configuration.
+
+If you want to customize the color themes or disable dark mode, you can use the following methods:
+
+```go
+// Create your chart normally
+chart := gosvgchart.NewLineChart().
+    SetTitle("Chart with Custom Themes").
+    SetSize(600, 400).
+    SetData([]float64{120, 250, 180, 310})
+
+// Dark mode is already enabled by default
+// You can customize the dark theme colors if desired:
+chart.SetDarkTheme(
+    "#121212", // Background color
+    "#ffffff", // Text color
+    "#aaaaaa", // Axis color
+    "#333333", // Grid color
+)
+
+// You can also customize the light theme colors:
+chart.SetLightTheme(
+    "#ffffff", // Background color
+    "#000000", // Text color
+    "#666666", // Axis color 
+    "#dddddd", // Grid color
+)
+
+// If you need to disable dark mode for some reason:
+chart.EnableDarkModeSupport(false)
+```
+
+When the chart is rendered, it will automatically adapt based on the system's color scheme preferences. This works in modern browsers and SVG viewers that support the CSS `prefers-color-scheme` media query.
+
+See `examples/dark_mode_example.go` for a complete example.
 
 ## Installation
 
@@ -125,7 +168,7 @@ chart.SetLabels([]string{
 SetData([]float64{5, 12, 3, 15, 8, 4, 7, 14, 6, 11})
 
 // Optional customization
-chart.SetCellSize(15).          // Size of each cell
+chart.SetCellSize(15).          // Size of each cell (will adapt to available space)
       SetCellSpacing(3).        // Space between cells
       SetCellRounding(2).       // Corner radius
       SetMaxValue(15).          // Maximum value for color scaling (0 for auto)
@@ -139,6 +182,31 @@ chart.SetColors([]string{
 // Render to SVG string
 svg := chart.Render()
 ```
+
+#### Heatmap Adaptivity
+
+Heatmaps will automatically:
+
+1. Use single-letter day labels (S, M, T, W, T, F, S) for each row
+2. Calculate cell sizes based on available space to ensure the entire calendar fits
+3. Adjust to different container sizes while maintaining the calendar structure
+
+```go
+// Create a heatmap chart with auto-sizing cells and single-letter day labels
+heatmapChart := gosvgchart.NewHeatmapChart().
+    SetTitle("Activity Heatmap").
+    SetSize(800, 200).  // The cell size will automatically adapt to this space
+    SetData(activityData).
+    SetStartDate("2023-01-01").
+    SetColors([]string{"#ebedf0", "#9be9a8", "#40c463", "#30a14e", "#216e39"})
+
+// The SetCellSize() method is optional - if omitted, cells will be sized to fill available space
+// Day labels are automatically set to single letters (S, M, T, W, T, F, S)
+
+svg := heatmapChart.Render()
+```
+
+See `cmd/examples/main.go` for a working example of adaptive heatmaps with various container sizes.
 
 ## Markdown Chart Format
 
@@ -388,6 +456,44 @@ GoSVGChart was designed with these principles in mind:
 3. **Declarative Syntax**: Use method chaining for a clean, readable configuration
 4. **LLM-Friendly**: Easy to explain to and be used by Large Language Models
 5. **Multiple Interfaces**: Support both code and text-based chart definitions
+
+## Running Examples
+
+GoSVGChart includes several examples to demonstrate different features:
+
+### Individual Examples
+
+The `examples/` directory contains standalone examples you can run directly:
+
+```bash
+go run examples/dark_mode_example.go
+go run examples/heatmap_autosizing_example.go
+```
+
+### Unified Examples Command
+
+The `cmd/examples/` directory contains a unified command that can run multiple examples:
+
+```bash
+# Build the examples command
+go build -o chart-examples ./cmd/examples
+
+# Run an example (default is "heatmap")
+./chart-examples
+
+# Run a specific example by type
+./chart-examples -type heatmap
+./chart-examples -type line
+./chart-examples -type bar
+./chart-examples -type pie
+```
+
+Each example will generate SVG files in the current directory that you can open in a web browser or SVG viewer:
+
+- Heatmap: `heatmap_autosizing.svg` and `heatmap_autosizing_small.svg`
+- Line chart: `line_chart_example.svg`
+- Bar chart: `bar_chart_example.svg`
+- Pie chart: `pie_chart_example.svg`
 
 ## License
 
