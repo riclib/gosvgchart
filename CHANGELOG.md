@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2025-03-15
+
+### Added
+- Responsive SVG output for all chart types
+  - Charts now use `width="100%" height="auto"` with viewBox for better responsiveness
+  - Dimensions specified now define aspect ratio rather than fixed pixel sizes
+  - Charts automatically adapt to container width while maintaining proportions
+  - Improved embedding experience in responsive layouts and mobile devices
+
 ## [0.5.1] - 2025-02-26
 
 ### Added

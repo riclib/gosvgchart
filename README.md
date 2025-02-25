@@ -10,7 +10,7 @@ A simple, declarative SVG chart library for Go. This library allows you to creat
   - Web server for dynamic chart generation
   - Goldmark extension for embedding charts in markdown documents
 - No external dependencies for core functionality (uses only the Go standard library)
-- Generates SVG output that can be used in web applications or saved to files
+- Generates responsive SVG output that adapts to container size while maintaining aspect ratio
 - Supports multiple chart types:
   - Line charts
   - Bar charts
@@ -18,6 +18,22 @@ A simple, declarative SVG chart library for Go. This library allows you to creat
   - Heatmap charts (GitHub-style activity heatmap)
 - Customizable styling and options
 - Automatic dark mode support for system color scheme adaptation
+
+## Responsive SVG Output
+
+All charts generated with GoSVGChart are fully responsive. The SVG output uses:
+- `width="100%"` to fill the container width
+- `height="auto"` to maintain the aspect ratio
+- `viewBox` and `preserveAspectRatio` to ensure proper scaling
+
+This means the dimensions you specify (via `SetSize()` or in the markdown format) define the aspect ratio rather than fixed pixel sizes. Your charts will automatically adapt to different screen sizes and container widths while maintaining their proportions.
+
+```html
+<!-- Example of the responsive SVG output -->
+<svg width="100%" height="auto" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+  <!-- Chart content -->
+</svg>
+```
 
 ## Dark Mode Support
 

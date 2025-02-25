@@ -487,7 +487,7 @@ func (c *LineChart) Render() string {
 	}
 
 	// Start SVG with namespace
-	svg.WriteString(fmt.Sprintf(`<svg width="%d" height="%d" xmlns="http://www.w3.org/2000/svg">`, c.Width, c.Height))
+	svg.WriteString(fmt.Sprintf(`<svg width="100%%" height="auto" viewBox="0 0 %d %d" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">`, c.Width, c.Height))
 
 	// Add dark/light mode support if enabled
 	if c.DarkModeSupport {
@@ -634,7 +634,8 @@ func (c *BarChart) Render() string {
 		c.Height = c.Width * 9 / 16
 	}
 
-	svg.WriteString(fmt.Sprintf(`<svg width="%d" height="%d" xmlns="http://www.w3.org/2000/svg">`, c.Width, c.Height))
+	// Start SVG with namespace
+	svg.WriteString(fmt.Sprintf(`<svg width="100%%" height="auto" viewBox="0 0 %d %d" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">`, c.Width, c.Height))
 
 	// Add dark/light mode support if enabled
 	if c.DarkModeSupport {
@@ -765,12 +766,11 @@ func (c *PieChart) Render() string {
 
 	// Apply auto-height if enabled
 	if c.AutoHeight {
-		// For pie charts, a square aspect is usually better
-		// But we'll still use 16:9 for consistency
-		c.Height = c.Width * 9 / 16
+		c.Height = c.Width // For pie charts, use a square aspect ratio
 	}
 
-	svg.WriteString(fmt.Sprintf(`<svg width="%d" height="%d" xmlns="http://www.w3.org/2000/svg">`, c.Width, c.Height))
+	// Start SVG with namespace
+	svg.WriteString(fmt.Sprintf(`<svg width="100%%" height="auto" viewBox="0 0 %d %d" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">`, c.Width, c.Height))
 
 	// Add dark/light mode support if enabled
 	if c.DarkModeSupport {
@@ -979,13 +979,8 @@ func (c *PieChart) Render() string {
 func (c *HeatmapChart) Render() string {
 	var svg strings.Builder
 
-	// Apply auto-height if enabled
-	if c.AutoHeight {
-		// For heatmap chart, use a fixed height of 250px as specified
-		c.Height = 250
-	}
-
-	svg.WriteString(fmt.Sprintf(`<svg width="%d" height="%d" xmlns="http://www.w3.org/2000/svg">`, c.Width, c.Height))
+	// Start SVG with namespace
+	svg.WriteString(fmt.Sprintf(`<svg width="100%%" height="auto" viewBox="0 0 %d %d" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">`, c.Width, c.Height))
 
 	// Add dark/light mode support if enabled
 	if c.DarkModeSupport {
