@@ -9,8 +9,8 @@ The chart specification should be in this format:
 ```gosvgchart
 charttype
 title: Chart Title
-width: 800
-height: 500
+width: auto
+height: auto
 colors: #color1, #color2, #color3
 
 data:
@@ -31,8 +31,8 @@ Choose one of these chart types based on the data:
 ### Properties
 
 - `title` - The title of the chart
-- `width` - Width in pixels (typically 600-1000)
-- `height` - Height in pixels (typically 400-600)
+- `width` - Can be "auto" or "100%" for responsive display (recommended), or a specific pixel value (e.g., 800)
+- `height` - Can be "auto" for proportional sizing (recommended), or a specific pixel value (e.g., 500)
 - `colors` - Comma-separated list of hex color codes (e.g., #3498db, #e74c3c)
 
 ### Data Section
@@ -44,13 +44,13 @@ The label is a text description, and the value must be a number.
 
 ### Side-by-Side Charts
 
-You can place multiple charts side by side by putting the chart blocks right next to each other without any text between them:
+You can place multiple charts side by side using the `---` separator within a single code block:
 
 ```gosvgchart
 barchart
 title: 2023 Revenue
-width: 450
-height: 300
+width: auto
+height: auto
 colors: #3498db, #2ecc71
 
 data:
@@ -58,12 +58,13 @@ Q1 | 850
 Q2 | 940
 Q3 | 1100
 Q4 | 1200
-```
-```gosvgchart
+
+---
+
 barchart
 title: 2024 Revenue
-width: 450
-height: 300
+width: auto
+height: auto
 colors: #e74c3c, #f39c12
 
 data:
@@ -73,6 +74,10 @@ Q3 | 1200
 Q4 | 1400
 ```
 
+When using side-by-side charts:
+- Width will automatically be set to ~48% for 2 charts
+- Width will automatically be set to ~31% for 3+ charts
+
 ## Examples
 
 ### Line Chart Example
@@ -80,8 +85,8 @@ Q4 | 1400
 ```gosvgchart
 linechart
 title: Monthly Sales 2024
-width: 800
-height: 500
+width: auto
+height: auto
 colors: #3498db, #2ecc71
 
 data:
@@ -98,8 +103,8 @@ Jun | 72000
 ```gosvgchart
 barchart
 title: Product Sales by Category
-width: 700
-height: 500
+width: auto
+height: auto
 colors: #3498db, #e74c3c, #f39c12, #2ecc71
 
 data:
@@ -114,8 +119,8 @@ Toys | 43000
 ```gosvgchart
 piechart
 title: Market Share by Region
-width: 600
-height: 600
+width: auto
+height: auto
 colors: #3498db, #e74c3c, #f39c12, #2ecc71, #9b59b6
 
 data:
@@ -131,8 +136,8 @@ Other | 5
 ```gosvgchart
 heatmapchart
 title: GitHub Contributions
-width: 800
-height: 200
+width: auto
+height: auto
 colors: #ebedf0, #9be9a8, #40c463, #30a14e, #216e39
 
 data:
@@ -153,20 +158,21 @@ data:
 ```gosvgchart
 piechart
 title: 2023 Market Share
-width: 400
-height: 400
+width: auto
+height: auto
 colors: #3498db, #e74c3c, #f39c12
 
 data:
 Product A | 45
 Product B | 35
 Product C | 20
-```
-```gosvgchart
+
+---
+
 piechart
 title: 2024 Market Share
-width: 400
-height: 400
+width: auto
+height: auto
 colors: #3498db, #e74c3c, #f39c12
 
 data:
@@ -182,6 +188,7 @@ Product C | 30
 3. Choose an appropriate chart type for the data.
 4. Select suitable colors that work well together.
 5. Ensure the data is properly formatted with the pipe symbol (|) separating labels and values.
-6. For comparing data side by side, place multiple chart blocks directly adjacent to each other.
+6. Use `width: auto` and `height: auto` for responsive charts that adapt to the container size.
+7. For comparing data side by side, use the `---` separator within a single chart block.
 
-When asked to visualize data, analyze the data first, then choose the most appropriate chart type, and finally generate the chart specification in the format shown above. If multiple comparisons are needed, consider using side-by-side charts.
+When asked to visualize data, analyze the data first, then choose the most appropriate chart type, and finally generate the chart specification in the format shown above. If multiple comparisons are needed, consider using side-by-side charts with the separator.

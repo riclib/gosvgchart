@@ -486,8 +486,14 @@ func (c *LineChart) Render() string {
 		c.Height = c.Width * 9 / 16
 	}
 
+	// Handle percentage or auto width
+	widthAttr := fmt.Sprintf(`%d`, c.Width)
+	if c.Width <= 0 {
+		widthAttr = "100%"
+	}
+
 	// Start SVG with namespace
-	svg.WriteString(fmt.Sprintf(`<svg width="%d" height="%d" xmlns="http://www.w3.org/2000/svg">`, c.Width, c.Height))
+	svg.WriteString(fmt.Sprintf(`<svg width="%s" height="%d" xmlns="http://www.w3.org/2000/svg">`, widthAttr, c.Height))
 
 	// Add dark/light mode support if enabled
 	if c.DarkModeSupport {
@@ -633,8 +639,14 @@ func (c *BarChart) Render() string {
 		// For standard charts, use a 16:9 aspect ratio (common screen format)
 		c.Height = c.Width * 9 / 16
 	}
+	
+	// Handle percentage or auto width
+	widthAttr := fmt.Sprintf(`%d`, c.Width)
+	if c.Width <= 0 {
+		widthAttr = "100%"
+	}
 
-	svg.WriteString(fmt.Sprintf(`<svg width="%d" height="%d" xmlns="http://www.w3.org/2000/svg">`, c.Width, c.Height))
+	svg.WriteString(fmt.Sprintf(`<svg width="%s" height="%d" xmlns="http://www.w3.org/2000/svg">`, widthAttr, c.Height))
 
 	// Add dark/light mode support if enabled
 	if c.DarkModeSupport {
@@ -769,8 +781,14 @@ func (c *PieChart) Render() string {
 		// But we'll still use 16:9 for consistency
 		c.Height = c.Width * 9 / 16
 	}
+	
+	// Handle percentage or auto width
+	widthAttr := fmt.Sprintf(`%d`, c.Width)
+	if c.Width <= 0 {
+		widthAttr = "100%"
+	}
 
-	svg.WriteString(fmt.Sprintf(`<svg width="%d" height="%d" xmlns="http://www.w3.org/2000/svg">`, c.Width, c.Height))
+	svg.WriteString(fmt.Sprintf(`<svg width="%s" height="%d" xmlns="http://www.w3.org/2000/svg">`, widthAttr, c.Height))
 
 	// Add dark/light mode support if enabled
 	if c.DarkModeSupport {
@@ -984,8 +1002,14 @@ func (c *HeatmapChart) Render() string {
 		// For heatmap chart, use a fixed height of 250px as specified
 		c.Height = 250
 	}
+	
+	// Handle percentage or auto width
+	widthAttr := fmt.Sprintf(`%d`, c.Width)
+	if c.Width <= 0 {
+		widthAttr = "100%"
+	}
 
-	svg.WriteString(fmt.Sprintf(`<svg width="%d" height="%d" xmlns="http://www.w3.org/2000/svg">`, c.Width, c.Height))
+	svg.WriteString(fmt.Sprintf(`<svg width="%s" height="%d" xmlns="http://www.w3.org/2000/svg">`, widthAttr, c.Height))
 
 	// Add dark/light mode support if enabled
 	if c.DarkModeSupport {

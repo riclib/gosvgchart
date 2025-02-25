@@ -70,13 +70,22 @@ func parseMultipleCharts(chartBlocks []string) (string, error) {
 	var result strings.Builder
 	result.WriteString(`<div style="display: flex; flex-wrap: wrap; justify-content: space-around; align-items: center; gap: 20px; margin: 20px 0;">`)
 	
+	// Determine width percentage based on number of charts
+	widthPercentage := "100%"
+	numCharts := len(chartDefs)
+	if numCharts == 2 {
+		widthPercentage = "48%" // Slightly less than 50% to account for gaps
+	} else if numCharts >= 3 {
+		widthPercentage = "31%" // Slightly less than 33% to account for gaps
+	}
+	
 	for i, chartDef := range chartDefs {
 		svg, err := renderChartFromDefinition(chartDef)
 		if err != nil {
 			return "", fmt.Errorf("error rendering chart #%d: %w", i+1, err)
 		}
 		
-		result.WriteString(`<div style="flex: 1; min-width: 300px; max-width: 48%;">`)
+		result.WriteString(fmt.Sprintf(`<div style="flex: 1; min-width: 300px; max-width: %s;">`, widthPercentage))
 		result.WriteString(svg)
 		result.WriteString(`</div>`)
 	}
@@ -183,10 +192,14 @@ func parseChartDefinition(markdown string, chartIndex int) (ChartDefinition, err
 			case "title":
 				chartDef.Title = value
 			case "width":
-				if w, err := strconv.Atoi(value); err == nil && w > 0 {
+				if strings.ToLower(value) == "auto" || value == "100%" || value == "50%" || value == "33%" {
+					// For auto or percentage widths, set Width to 0 and it will be handled in render
+					chartDef.Width = 0
+					// The percentage value will be applied during rendering
+				} else if w, err := strconv.Atoi(value); err == nil && w > 0 {
 					chartDef.Width = w
 				} else {
-					configErrors = append(configErrors, fmt.Sprintf("line %d: invalid width value '%s' - must be a positive number", i+1, value))
+					configErrors = append(configErrors, fmt.Sprintf("line %d: invalid width value '%s' - must be a positive number, 'auto', '100%%', '50%%', or '33%%'", i+1, value))
 				}
 			case "height":
 				if strings.ToLower(value) == "auto" {

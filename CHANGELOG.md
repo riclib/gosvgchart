@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2025-02-25
+
+### Added
+- Added support for responsive chart widths with "auto", "100%", "50%", or "33%" width values
+- Automatic responsive width adjustment for side-by-side charts
+- SVG output now uses percentage-based widths when "auto" or percentage widths are specified
+
+### Changed
+- Updated chart rendering to support responsive layouts for all chart types
+- Side-by-side charts now automatically size to 48% width for 2 charts, 31% for 3+ charts
+- Documentation updated to showcase the new responsive sizing options
+
 ## [0.5.1] - 2025-02-26
 
 ### Added

@@ -263,14 +263,14 @@ Product D | 15
 Others | 5
 ```
 
-### Using Auto-Height
+### Using Auto-Sizing
 
-You can specify `height: auto` to automatically calculate the height based on the width:
+You can use auto-sizing features for responsive charts that adapt to their container:
 
 ```gosvgchart
 linechart
-title: Revenue with Auto Height
-width: 800
+title: Responsive Chart
+width: auto
 height: auto
 colors: #3498db
 
@@ -282,6 +282,14 @@ Apr | 310
 May | 270
 Jun | 390
 ```
+
+Width options:
+- `width: auto` or `width: 100%` - Full width of container
+- `width: 50%` - Half width of container
+- `width: 33%` - One-third width of container
+- `width: 800` - Fixed width in pixels
+
+When `height: auto` is specified, the height is automatically calculated based on the width (using a 16:9 aspect ratio for standard charts, or 250px for heatmaps).
 
 ### Heatmap Chart Example
 
@@ -311,8 +319,8 @@ You can place multiple charts side by side by using the `---` separator within a
 ```gosvgchart
 barchart
 title: 2023 Revenue
-width: 450
-height: 300
+width: auto
+height: auto
 colors: #3498db, #2ecc71
 
 data:
@@ -325,8 +333,8 @@ Q4 | 1200
 
 barchart
 title: 2024 Revenue
-width: 450
-height: 300
+width: auto
+height: auto
 colors: #e74c3c, #f39c12
 
 data:
@@ -335,6 +343,10 @@ Q2 | 1040
 Q3 | 1200
 Q4 | 1400
 ```
+
+When using side-by-side charts:
+- For 2 charts, each chart gets approximately 48% of the container width
+- For 3 or more charts, each chart gets approximately 31% of the container width
 
 ## Command Line Tools
 
