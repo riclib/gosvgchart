@@ -16,6 +16,9 @@ type Chart interface {
 	SetData(data []float64) Chart
 	SetLabels(labels []string) Chart
 	SetColors(colors []string) Chart
+	// New methods for multiple series support
+	AddSeries(name string, data []float64) Chart
+	SetSeriesColors(colors []string) Chart
 	Render() string
 }
 
@@ -29,9 +32,12 @@ type BaseChart struct {
 	Data       []float64
 	Labels     []string
 	Colors     []string
-	ShowTitle  bool
-	ShowLegend bool
-	Margin     struct {
+	// New fields for multiple series support
+	Series       []Series
+	SeriesColors []string
+	ShowTitle    bool
+	ShowLegend   bool
+	Margin       struct {
 		Top    int
 		Right  int
 		Bottom int
@@ -51,6 +57,12 @@ type BaseChart struct {
 		AxisColor       string
 		GridColor       string
 	}
+}
+
+// Series represents a data series with a name and values
+type Series struct {
+	Name string
+	Data []float64
 }
 
 // LineChart implements a line chart
@@ -87,9 +99,8 @@ type HeatmapChart struct {
 	MaxValue     float64  // Maximum value for color scaling (0 for auto)
 }
 
-// New creates a new chart with default settings
-func New() Chart {
-	// Default to line chart
+// New creates a new line chart (for backward compatibility)
+func New() *LineChart {
 	return NewLineChart()
 }
 
@@ -265,6 +276,18 @@ func (c *LineChart) SetColors(colors []string) Chart {
 	return c
 }
 
+// AddSeries adds a new data series to the line chart
+func (c *LineChart) AddSeries(name string, data []float64) Chart {
+	c.Series = append(c.Series, Series{Name: name, Data: data})
+	return c
+}
+
+// SetSeriesColors sets the colors for multiple data series
+func (c *LineChart) SetSeriesColors(colors []string) Chart {
+	c.SeriesColors = colors
+	return c
+}
+
 // BarChart methods to implement Chart interface
 
 // SetTitle sets the chart title
@@ -305,6 +328,18 @@ func (c *BarChart) SetColors(colors []string) Chart {
 	return c
 }
 
+// AddSeries adds a new data series to the bar chart
+func (c *BarChart) AddSeries(name string, data []float64) Chart {
+	c.Series = append(c.Series, Series{Name: name, Data: data})
+	return c
+}
+
+// SetSeriesColors sets the colors for multiple data series
+func (c *BarChart) SetSeriesColors(colors []string) Chart {
+	c.SeriesColors = colors
+	return c
+}
+
 // PieChart methods to implement Chart interface
 
 // SetTitle sets the chart title
@@ -341,6 +376,22 @@ func (c *PieChart) SetLabels(labels []string) Chart {
 
 // SetColors sets the color palette as hex values
 func (c *PieChart) SetColors(colors []string) Chart {
+	c.Colors = colors
+	return c
+}
+
+// AddSeries adds a new data series to the pie chart
+// Note: Pie charts typically don't support multiple series in the same way as line/bar charts
+// This implementation will replace the existing data with the new series
+func (c *PieChart) AddSeries(name string, data []float64) Chart {
+	// For pie charts, we'll just replace the data
+	c.Data = data
+	return c
+}
+
+// SetSeriesColors sets the colors for multiple data series
+// For pie charts, this is the same as SetColors
+func (c *PieChart) SetSeriesColors(colors []string) Chart {
 	c.Colors = colors
 	return c
 }
@@ -542,9 +593,25 @@ func (c *LineChart) Render() string {
 
 	// Calculate scales
 	var maxValue float64
-	for _, v := range c.Data {
-		if v > maxValue {
-			maxValue = v
+
+	// Check if we have multiple series
+	hasMultipleSeries := len(c.Series) > 0
+
+	// Find max value across all series
+	if hasMultipleSeries {
+		for _, series := range c.Series {
+			for _, v := range series.Data {
+				if v > maxValue {
+					maxValue = v
+				}
+			}
+		}
+	} else {
+		// Legacy single series support
+		for _, v := range c.Data {
+			if v > maxValue {
+				maxValue = v
+			}
 		}
 	}
 
@@ -565,7 +632,123 @@ func (c *LineChart) Render() string {
 	}
 
 	// Draw data
-	if len(c.Data) > 0 {
+	if hasMultipleSeries {
+		// Draw multiple series
+		for seriesIndex, series := range c.Series {
+			if len(series.Data) == 0 {
+				continue
+			}
+
+			// Calculate point coordinates
+			points := make([][2]int, len(series.Data))
+			for i, v := range series.Data {
+				x := c.Margin.Left + i*chartWidth/(len(series.Data)-1)
+				if len(series.Data) == 1 {
+					x = c.Margin.Left + chartWidth/2
+				}
+				y := c.Height - c.Margin.Bottom - int(v/maxValue*float64(chartHeight))
+				points[i] = [2]int{x, y}
+			}
+
+			// Determine color for this series
+			var color string
+			if seriesIndex < len(c.SeriesColors) {
+				color = c.SeriesColors[seriesIndex]
+			} else if len(c.Colors) > 0 {
+				color = c.Colors[seriesIndex%len(c.Colors)]
+			} else {
+				// Default colors if none specified
+				defaultColors := []string{"#4285F4", "#EA4335", "#FBBC05", "#34A853", "#8AB4F8", "#F6AEA9", "#FDE293", "#A8DAB5"}
+				color = defaultColors[seriesIndex%len(defaultColors)]
+			}
+
+			// Draw line
+			var path strings.Builder
+			path.WriteString(fmt.Sprintf(`<path d="M%d,%d`, points[0][0], points[0][1]))
+			for i := 1; i < len(points); i++ {
+				if c.Smooth && i < len(points)-1 {
+					// Calculate control points for smooth curve
+					x1 := points[i-1][0]
+					y1 := points[i-1][1]
+					x2 := points[i][0]
+					y2 := points[i][1]
+					xc := (x1 + x2) / 2
+					path.WriteString(fmt.Sprintf(" Q%d,%d %d,%d", xc, y1, xc, (y1+y2)/2))
+					path.WriteString(fmt.Sprintf(" Q%d,%d %d,%d", xc, y2, x2, y2))
+				} else {
+					path.WriteString(fmt.Sprintf(" L%d,%d", points[i][0], points[i][1]))
+				}
+			}
+			path.WriteString(`" fill="none" stroke="` + color + `" stroke-width="3"/>`)
+			svg.WriteString(path.String())
+
+			// Draw points if enabled
+			if c.ShowPoints {
+				for _, p := range points {
+					svg.WriteString(fmt.Sprintf(`<circle cx="%d" cy="%d" r="5" fill="%s"/>`, p[0], p[1], color))
+				}
+			}
+		}
+
+		// Draw legend if we have multiple series
+		if c.ShowLegend && len(c.Series) > 0 {
+			legendY := c.Margin.Top + 20
+			legendX := c.Width - c.Margin.Right - 150
+
+			for i, series := range c.Series {
+				// Determine color for this series
+				var color string
+				if i < len(c.SeriesColors) {
+					color = c.SeriesColors[i]
+				} else if len(c.Colors) > 0 {
+					color = c.Colors[i%len(c.Colors)]
+				} else {
+					// Default colors if none specified
+					defaultColors := []string{"#4285F4", "#EA4335", "#FBBC05", "#34A853", "#8AB4F8", "#F6AEA9", "#FDE293", "#A8DAB5"}
+					color = defaultColors[i%len(defaultColors)]
+				}
+
+				// Draw legend item
+				svg.WriteString(fmt.Sprintf(`<rect x="%d" y="%d" width="15" height="15" fill="%s"/>`,
+					legendX, legendY+i*25, color))
+
+				if c.DarkModeSupport {
+					svg.WriteString(fmt.Sprintf(`<text x="%d" y="%d" font-family="Arial" font-size="12" fill="var(--chart-text)">%s</text>`,
+						legendX+25, legendY+i*25+12, series.Name))
+				} else {
+					svg.WriteString(fmt.Sprintf(`<text x="%d" y="%d" font-family="Arial" font-size="12">%s</text>`,
+						legendX+25, legendY+i*25+12, series.Name))
+				}
+			}
+		}
+
+		// Draw labels on x-axis if available
+		if len(c.Labels) > 0 {
+			numPoints := 0
+			// Find the series with the most data points
+			for _, series := range c.Series {
+				if len(series.Data) > numPoints {
+					numPoints = len(series.Data)
+				}
+			}
+
+			for i := 0; i < numPoints && i < len(c.Labels); i++ {
+				x := c.Margin.Left + i*chartWidth/(numPoints-1)
+				if numPoints == 1 {
+					x = c.Margin.Left + chartWidth/2
+				}
+
+				if c.DarkModeSupport {
+					svg.WriteString(fmt.Sprintf(`<text x="%d" y="%d" text-anchor="middle" font-family="Arial" font-size="12" fill="var(--chart-text)">%s</text>`,
+						x, c.Height-c.Margin.Bottom+20, c.Labels[i]))
+				} else {
+					svg.WriteString(fmt.Sprintf(`<text x="%d" y="%d" text-anchor="middle" font-family="Arial" font-size="12">%s</text>`,
+						x, c.Height-c.Margin.Bottom+20, c.Labels[i]))
+				}
+			}
+		}
+	} else if len(c.Data) > 0 {
+		// Legacy single series support
 		// Calculate point coordinates
 		points := make([][2]int, len(c.Data))
 		for i, v := range c.Data {
@@ -688,11 +871,58 @@ func (c *BarChart) Render() string {
 	chartWidth := c.Width - c.Margin.Left - c.Margin.Right
 	chartHeight := c.Height - c.Margin.Top - c.Margin.Bottom
 
+	// Check if we have multiple series
+	hasMultipleSeries := len(c.Series) > 0
+
 	// Calculate scales
 	var maxValue float64
-	for _, v := range c.Data {
-		if v > maxValue {
-			maxValue = v
+	var maxStackedValue []float64
+
+	if hasMultipleSeries {
+		if c.Stacked {
+			// For stacked bars, we need to calculate the sum of values at each position
+			// Find the maximum number of data points across all series
+			maxDataPoints := 0
+			for _, series := range c.Series {
+				if len(series.Data) > maxDataPoints {
+					maxDataPoints = len(series.Data)
+				}
+			}
+
+			// Initialize the maxStackedValue slice
+			maxStackedValue = make([]float64, maxDataPoints)
+
+			// Calculate the sum of values at each position
+			for _, series := range c.Series {
+				for i, v := range series.Data {
+					if i < len(maxStackedValue) {
+						maxStackedValue[i] += v
+					}
+				}
+			}
+
+			// Find the maximum stacked value
+			for _, v := range maxStackedValue {
+				if v > maxValue {
+					maxValue = v
+				}
+			}
+		} else {
+			// For grouped bars, find the maximum value across all series
+			for _, series := range c.Series {
+				for _, v := range series.Data {
+					if v > maxValue {
+						maxValue = v
+					}
+				}
+			}
+		}
+	} else {
+		// Legacy single series support
+		for _, v := range c.Data {
+			if v > maxValue {
+				maxValue = v
+			}
 		}
 	}
 
@@ -713,7 +943,188 @@ func (c *BarChart) Render() string {
 	}
 
 	// Draw data
-	if len(c.Data) > 0 {
+	if hasMultipleSeries {
+		// Find the maximum number of data points across all series
+		maxDataPoints := 0
+		for _, series := range c.Series {
+			if len(series.Data) > maxDataPoints {
+				maxDataPoints = len(series.Data)
+			}
+		}
+
+		if c.Stacked {
+			// Draw stacked bars
+			barWidth := chartWidth / (maxDataPoints * 2)
+
+			// For each data point position
+			for i := 0; i < maxDataPoints; i++ {
+				barX := c.Margin.Left + i*(chartWidth/maxDataPoints) + (chartWidth/maxDataPoints-barWidth)/2
+
+				// Track the current height for stacking
+				var currentStackHeight float64 = 0
+
+				// For each series, stack the bars
+				for seriesIndex, series := range c.Series {
+					if i >= len(series.Data) {
+						continue // Skip if this series doesn't have data for this position
+					}
+
+					value := series.Data[i]
+					if value <= 0 {
+						continue // Skip non-positive values
+					}
+
+					// Calculate bar dimensions
+					barHeight := int(value / maxValue * float64(chartHeight))
+					barY := c.Height - c.Margin.Bottom - int(currentStackHeight/maxValue*float64(chartHeight)) - barHeight
+
+					// Update stack height for next bar
+					currentStackHeight += value
+
+					// Determine color for this series
+					var color string
+					if seriesIndex < len(c.SeriesColors) {
+						color = c.SeriesColors[seriesIndex]
+					} else if len(c.Colors) > 0 {
+						color = c.Colors[seriesIndex%len(c.Colors)]
+					} else {
+						// Default colors if none specified
+						defaultColors := []string{"#4285F4", "#EA4335", "#FBBC05", "#34A853", "#8AB4F8", "#F6AEA9", "#FDE293", "#A8DAB5"}
+						color = defaultColors[seriesIndex%len(defaultColors)]
+					}
+
+					// Draw the bar
+					svg.WriteString(fmt.Sprintf(`<rect x="%d" y="%d" width="%d" height="%d" fill="%s"/>`,
+						barX, barY, barWidth, barHeight, color))
+
+					// Add value text in the middle of each segment
+					if barHeight > 20 { // Only show text if bar is tall enough
+						if c.DarkModeSupport {
+							svg.WriteString(fmt.Sprintf(`<text x="%d" y="%d" text-anchor="middle" font-family="Arial" font-size="12" fill="var(--chart-text)">%.0f</text>`,
+								barX+barWidth/2, barY+barHeight/2+5, value))
+						} else {
+							svg.WriteString(fmt.Sprintf(`<text x="%d" y="%d" text-anchor="middle" font-family="Arial" font-size="12" fill="white">%.0f</text>`,
+								barX+barWidth/2, barY+barHeight/2+5, value))
+						}
+					}
+				}
+
+				// Add total value on top of the stack if there are multiple series
+				if len(c.Series) > 1 && i < len(maxStackedValue) {
+					totalValue := maxStackedValue[i]
+					totalBarHeight := int(totalValue / maxValue * float64(chartHeight))
+					totalBarY := c.Height - c.Margin.Bottom - totalBarHeight
+
+					if c.DarkModeSupport {
+						svg.WriteString(fmt.Sprintf(`<text x="%d" y="%d" text-anchor="middle" font-family="Arial" font-size="12" fill="var(--chart-text)">%.0f</text>`,
+							barX+barWidth/2, totalBarY-5, totalValue))
+					} else {
+						svg.WriteString(fmt.Sprintf(`<text x="%d" y="%d" text-anchor="middle" font-family="Arial" font-size="12" fill="black">%.0f</text>`,
+							barX+barWidth/2, totalBarY-5, totalValue))
+					}
+				}
+			}
+		} else {
+			// Draw grouped bars
+			// Calculate the width of each group of bars
+			groupWidth := chartWidth / maxDataPoints
+			// Calculate the width of each individual bar within a group
+			barWidth := groupWidth / (len(c.Series) + 1) // +1 for spacing
+
+			// For each data point position
+			for i := 0; i < maxDataPoints; i++ {
+				// For each series, draw a bar in the group
+				for seriesIndex, series := range c.Series {
+					if i >= len(series.Data) {
+						continue // Skip if this series doesn't have data for this position
+					}
+
+					value := series.Data[i]
+					if value <= 0 {
+						continue // Skip non-positive values
+					}
+
+					// Calculate bar dimensions
+					barHeight := int(value / maxValue * float64(chartHeight))
+					barX := c.Margin.Left + i*groupWidth + seriesIndex*barWidth + barWidth/2
+					barY := c.Height - c.Margin.Bottom - barHeight
+
+					// Determine color for this series
+					var color string
+					if seriesIndex < len(c.SeriesColors) {
+						color = c.SeriesColors[seriesIndex]
+					} else if len(c.Colors) > 0 {
+						color = c.Colors[seriesIndex%len(c.Colors)]
+					} else {
+						// Default colors if none specified
+						defaultColors := []string{"#4285F4", "#EA4335", "#FBBC05", "#34A853", "#8AB4F8", "#F6AEA9", "#FDE293", "#A8DAB5"}
+						color = defaultColors[seriesIndex%len(defaultColors)]
+					}
+
+					// Draw the bar
+					svg.WriteString(fmt.Sprintf(`<rect x="%d" y="%d" width="%d" height="%d" fill="%s"/>`,
+						barX, barY, barWidth, barHeight, color))
+
+					// Add value text on top of bar
+					if c.DarkModeSupport {
+						svg.WriteString(fmt.Sprintf(`<text x="%d" y="%d" text-anchor="middle" font-family="Arial" font-size="12" fill="var(--chart-text)">%.0f</text>`,
+							barX+barWidth/2, barY-5, value))
+					} else {
+						svg.WriteString(fmt.Sprintf(`<text x="%d" y="%d" text-anchor="middle" font-family="Arial" font-size="12" fill="black">%.0f</text>`,
+							barX+barWidth/2, barY-5, value))
+					}
+				}
+			}
+		}
+
+		// Draw legend if we have multiple series
+		if c.ShowLegend && len(c.Series) > 0 {
+			legendY := c.Margin.Top + 20
+			legendX := c.Width - c.Margin.Right - 150
+
+			for i, series := range c.Series {
+				// Determine color for this series
+				var color string
+				if i < len(c.SeriesColors) {
+					color = c.SeriesColors[i]
+				} else if len(c.Colors) > 0 {
+					color = c.Colors[i%len(c.Colors)]
+				} else {
+					// Default colors if none specified
+					defaultColors := []string{"#4285F4", "#EA4335", "#FBBC05", "#34A853", "#8AB4F8", "#F6AEA9", "#FDE293", "#A8DAB5"}
+					color = defaultColors[i%len(defaultColors)]
+				}
+
+				// Draw legend item
+				svg.WriteString(fmt.Sprintf(`<rect x="%d" y="%d" width="15" height="15" fill="%s"/>`,
+					legendX, legendY+i*25, color))
+
+				if c.DarkModeSupport {
+					svg.WriteString(fmt.Sprintf(`<text x="%d" y="%d" font-family="Arial" font-size="12" fill="var(--chart-text)">%s</text>`,
+						legendX+25, legendY+i*25+12, series.Name))
+				} else {
+					svg.WriteString(fmt.Sprintf(`<text x="%d" y="%d" font-family="Arial" font-size="12">%s</text>`,
+						legendX+25, legendY+i*25+12, series.Name))
+				}
+			}
+		}
+
+		// Draw labels on x-axis if available
+		if len(c.Labels) > 0 {
+			for i := 0; i < maxDataPoints && i < len(c.Labels); i++ {
+				x := c.Margin.Left + i*(chartWidth/maxDataPoints) + (chartWidth/maxDataPoints)/2
+
+				if c.DarkModeSupport {
+					svg.WriteString(fmt.Sprintf(`<text x="%d" y="%d" text-anchor="middle" font-family="Arial" font-size="12" fill="var(--chart-text)">%s</text>`,
+						x, c.Height-c.Margin.Bottom+20, c.Labels[i]))
+				} else {
+					svg.WriteString(fmt.Sprintf(`<text x="%d" y="%d" text-anchor="middle" font-family="Arial" font-size="12">%s</text>`,
+						x, c.Height-c.Margin.Bottom+20, c.Labels[i]))
+				}
+			}
+		}
+	} else if len(c.Data) > 0 {
+		// Legacy single series support
 		barWidth := chartWidth / (len(c.Data) * 2)
 
 		// Draw bars
@@ -1262,4 +1673,20 @@ func (chart *BaseChart) SetLightTheme(backgroundColor, textColor, axisColor, gri
 	chart.LightTheme.AxisColor = axisColor
 	chart.LightTheme.GridColor = gridColor
 	return chart
+}
+
+// AddSeries adds a new data series to the heatmap chart
+// Note: Heatmap charts typically don't support multiple series in the same way as line/bar charts
+// This implementation will replace the existing data with the new series
+func (c *HeatmapChart) AddSeries(name string, data []float64) Chart {
+	// For heatmaps, we'll just replace the data
+	c.Data = data
+	return c
+}
+
+// SetSeriesColors sets the colors for multiple data series
+// For heatmaps, this is the same as SetColors
+func (c *HeatmapChart) SetSeriesColors(colors []string) Chart {
+	c.Colors = colors
+	return c
 }

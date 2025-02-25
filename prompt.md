@@ -34,6 +34,8 @@ Choose one of these chart types based on the data:
 - `width` - Width in pixels (typically 600-1000)
 - `height` - Height in pixels (typically 400-600)
 - `colors` - Comma-separated list of hex color codes (e.g., #3498db, #e74c3c)
+- `seriescolors` - Comma-separated list of hex color codes for multiple series (e.g., #3498db, #e74c3c)
+- `stacked` - For bar charts with multiple series, set to `true` for stacked bars or `false` for grouped bars
 
 ### Data Section
 
@@ -42,9 +44,69 @@ After the `data:` line, each data point should be on its own line with the forma
 
 The label is a text description, and the value must be a number.
 
+### Multiple Series Support
+
+For charts with multiple data series (line charts and bar charts), you can use either of these formats:
+
+#### Traditional Format
+
+```gosvgchart
+linechart
+title: Monthly Sales by Product
+width: 800
+height: auto
+seriescolors: #4285F4, #EA4335, #FBBC05
+
+series: Product A
+Jan | 120
+Feb | 150
+Mar | 180
+
+series: Product B
+Jan | 200
+Feb | 180
+Mar | 160
+```
+
+#### Tabular Format (Recommended)
+
+The tabular format is more intuitive and easier to read:
+
+```gosvgchart
+linechart
+title: Monthly Sales by Product
+width: 800
+height: auto
+seriescolors: #4285F4, #EA4335, #FBBC05
+
+series:
+Month | Product A | Product B | Product C
+Jan | 120 | 200 | 50
+Feb | 150 | 180 | 80
+Mar | 180 | 160 | 110
+```
+
+For bar charts, you can use `stacked: true` or `stacked: false` to control whether the bars are stacked or grouped:
+
+```gosvgchart
+barchart
+title: Quarterly Revenue by Region
+width: 800
+height: auto
+stacked: false
+seriescolors: #4285F4, #EA4335, #FBBC05, #34A853
+
+series:
+Quarter | North | South | East | West
+Q1 | 150 | 120 | 90 | 180
+Q2 | 180 | 140 | 110 | 200
+Q3 | 210 | 160 | 130 | 220
+Q4 | 240 | 180 | 150 | 240
+```
+
 ### Side-by-Side Charts
 
-You can place multiple charts side by side by putting the chart blocks right next to each other without any text between them:
+You can place multiple charts side by side by using the `---` separator within a single code block:
 
 ```gosvgchart
 barchart
@@ -58,8 +120,9 @@ Q1 | 850
 Q2 | 940
 Q3 | 1100
 Q4 | 1200
-```
-```gosvgchart
+
+---
+
 barchart
 title: 2024 Revenue
 width: 450
@@ -93,6 +156,25 @@ May | 58000
 Jun | 72000
 ```
 
+### Multiple Series Line Chart Example
+
+```gosvgchart
+linechart
+title: Monthly Sales by Product
+width: 800
+height: 500
+seriescolors: #4285F4, #EA4335, #FBBC05
+
+series:
+Month | Product A | Product B | Product C
+Jan | 45000 | 32000 | 18000
+Feb | 52000 | 34000 | 20000
+Mar | 49000 | 36000 | 22000
+Apr | 63000 | 38000 | 24000
+May | 58000 | 40000 | 26000
+Jun | 72000 | 42000 | 28000
+```
+
 ### Bar Chart Example
 
 ```gosvgchart
@@ -107,6 +189,42 @@ Electronics | 125000
 Clothing | 85000
 Home & Garden | 62000
 Toys | 43000
+```
+
+### Multiple Series Bar Chart Example (Grouped)
+
+```gosvgchart
+barchart
+title: Quarterly Revenue by Region
+width: 800
+height: 500
+stacked: false
+seriescolors: #4285F4, #EA4335, #FBBC05, #34A853
+
+series:
+Quarter | North | South | East | West
+Q1 | 150 | 120 | 90 | 180
+Q2 | 180 | 140 | 110 | 200
+Q3 | 210 | 160 | 130 | 220
+Q4 | 240 | 180 | 150 | 240
+```
+
+### Multiple Series Bar Chart Example (Stacked)
+
+```gosvgchart
+barchart
+title: Quarterly Revenue by Region
+width: 800
+height: 500
+stacked: true
+seriescolors: #4285F4, #EA4335, #FBBC05, #34A853
+
+series:
+Quarter | North | South | East | West
+Q1 | 150 | 120 | 90 | 180
+Q2 | 180 | 140 | 110 | 200
+Q3 | 210 | 160 | 130 | 220
+Q4 | 240 | 180 | 150 | 240
 ```
 
 ### Pie Chart Example
@@ -161,8 +279,9 @@ data:
 Product A | 45
 Product B | 35
 Product C | 20
-```
-```gosvgchart
+
+---
+
 piechart
 title: 2024 Market Share
 width: 400
@@ -182,6 +301,8 @@ Product C | 30
 3. Choose an appropriate chart type for the data.
 4. Select suitable colors that work well together.
 5. Ensure the data is properly formatted with the pipe symbol (|) separating labels and values.
-6. For comparing data side by side, place multiple chart blocks directly adjacent to each other.
+6. For multiple series, use the tabular format for better readability when possible.
+7. For comparing data side by side, use the `---` separator within a single code block.
+8. For bar charts with multiple series, specify `stacked: true` or `stacked: false` to control the display style.
 
-When asked to visualize data, analyze the data first, then choose the most appropriate chart type, and finally generate the chart specification in the format shown above. If multiple comparisons are needed, consider using side-by-side charts.
+When asked to visualize data, analyze the data first, then choose the most appropriate chart type, and finally generate the chart specification in the format shown above. If multiple comparisons are needed, consider using multiple series or side-by-side charts.

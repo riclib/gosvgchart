@@ -109,18 +109,19 @@ func main() {
 				<p>Enter chart specification in markdown format:</p>
 				
 				<textarea id="markdown">linechart
-title: Monthly Sales
-width: 600
-height: 400
-colors: #3498db, #e74c3c
+title: Monthly Sales by Product
+width: 800
+height: auto
+seriescolors: #4285F4, #EA4335, #FBBC05
 
-data:
-Jan | 120
-Feb | 250
-Mar | 180
-Apr | 310
-May | 270
-Jun | 390</textarea>
+series:
+Month | Product A | Product B | Product C
+Jan | 120 | 200 | 50
+Feb | 150 | 180 | 80
+Mar | 180 | 160 | 110
+Apr | 210 | 140 | 140
+May | 240 | 120 | 170
+Jun | 270 | 100 | 200</textarea>
 				
 				<div>
 					<button onclick="generateChart()">Generate Chart</button>
@@ -151,6 +152,39 @@ Jun | 390</pre>
 					</div>
 					
 					<div class="example">
+						<h4>Multiple Series Line Chart</h4>
+						<pre>linechart
+title: Monthly Sales by Product
+width: 800
+height: auto
+seriescolors: #4285F4, #EA4335, #FBBC05, #34A853
+
+series: Product A
+Jan | 120
+Feb | 150
+Mar | 180
+Apr | 210
+May | 240
+Jun | 270
+
+series: Product B
+Jan | 200
+Feb | 180
+Mar | 160
+Apr | 140
+May | 120
+Jun | 100
+
+series: Product C
+Jan | 50
+Feb | 80
+Mar | 110
+Apr | 140
+May | 170
+Jun | 200</pre>
+					</div>
+					
+					<div class="example">
 						<h4>Bar Chart</h4>
 						<pre>barchart
 title: Quarterly Revenue
@@ -163,6 +197,109 @@ Q1 | 850
 Q2 | 940
 Q3 | 1100
 Q4 | 1200</pre>
+					</div>
+					
+					<div class="example">
+						<h4>Grouped Bar Chart (Multiple Series)</h4>
+						<pre>barchart
+title: Quarterly Revenue by Region
+width: 800
+height: auto
+stacked: false
+seriescolors: #4285F4, #EA4335, #FBBC05, #34A853
+
+series: North
+Q1 | 150
+Q2 | 180
+Q3 | 210
+Q4 | 240
+
+series: South
+Q1 | 120
+Q2 | 140
+Q3 | 160
+Q4 | 180
+
+series: East
+Q1 | 90
+Q2 | 110
+Q3 | 130
+Q4 | 150
+
+series: West
+Q1 | 180
+Q2 | 200
+Q3 | 220
+Q4 | 240</pre>
+					</div>
+					
+					<div class="example">
+						<h4>Stacked Bar Chart (Multiple Series)</h4>
+						<pre>barchart
+title: Quarterly Revenue by Region (Stacked)
+width: 800
+height: auto
+stacked: true
+seriescolors: #4285F4, #EA4335, #FBBC05, #34A853
+
+series: North
+Q1 | 150
+Q2 | 180
+Q3 | 210
+Q4 | 240
+
+series: South
+Q1 | 120
+Q2 | 140
+Q3 | 160
+Q4 | 180
+
+series: East
+Q1 | 90
+Q2 | 110
+Q3 | 130
+Q4 | 150
+
+series: West
+Q1 | 180
+Q2 | 200
+Q3 | 220
+Q4 | 240</pre>
+					</div>
+					
+					<div class="example">
+						<h4>Tabular Format (Multiple Series)</h4>
+						<pre>linechart
+title: Monthly Sales by Product (Tabular Format)
+width: 800
+height: auto
+seriescolors: #4285F4, #EA4335, #FBBC05
+
+series:
+Month | Product A | Product B | Product C
+Jan | 120 | 200 | 50
+Feb | 150 | 180 | 80
+Mar | 180 | 160 | 110
+Apr | 210 | 140 | 140
+May | 240 | 120 | 170
+Jun | 270 | 100 | 200</pre>
+					</div>
+					
+					<div class="example">
+						<h4>Tabular Format Bar Chart</h4>
+						<pre>barchart
+title: Quarterly Revenue by Region (Tabular Format)
+width: 800
+height: auto
+stacked: false
+seriescolors: #4285F4, #EA4335, #FBBC05, #34A853
+
+series:
+Quarter | North | South | East | West
+Q1 | 150 | 120 | 90 | 180
+Q2 | 180 | 140 | 110 | 200
+Q3 | 210 | 160 | 130 | 220
+Q4 | 240 | 180 | 150 | 240</pre>
 					</div>
 					
 					<div class="example">
@@ -179,11 +316,11 @@ Product B | 25
 Product C | 20
 Product D | 15
 Others | 5</pre>
-						</div>
-						
-						<div class="example">
-							<h4>Heatmap Chart</h4>
-							<pre>heatmapchart
+					</div>
+					
+					<div class="example">
+						<h4>Heatmap Chart</h4>
+						<pre>heatmapchart
 title: GitHub Contribution Activity
 width: 800
 height: 200
@@ -243,6 +380,43 @@ Mar | 180
 Apr | 310
 May | 270
 Jun | 390
+` + "```" + `
+
+## Regional Sales Comparison
+
+` + "```gosvgchart" + `
+barchart
+title: Quarterly Revenue by Region
+width: 800
+height: auto
+stacked: false
+seriescolors: #4285F4, #EA4335, #FBBC05, #34A853
+
+series:
+Quarter | North | South | East | West
+Q1 | 150 | 120 | 90 | 180
+Q2 | 180 | 140 | 110 | 200
+Q3 | 210 | 160 | 130 | 220
+Q4 | 240 | 180 | 150 | 240
+` + "```" + `
+
+## Product Sales Comparison
+
+` + "```gosvgchart" + `
+linechart
+title: Monthly Sales by Product
+width: 800
+height: auto
+seriescolors: #4285F4, #EA4335, #FBBC05
+
+series:
+Month | Product A | Product B | Product C
+Jan | 120 | 200 | 50
+Feb | 150 | 180 | 80
+Mar | 180 | 160 | 110
+Apr | 210 | 140 | 140
+May | 240 | 120 | 170
+Jun | 270 | 100 | 200
 ` + "```" + `
 
 ## Developer Activity

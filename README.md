@@ -12,10 +12,11 @@ A simple, declarative SVG chart library for Go. This library allows you to creat
 - No external dependencies for core functionality (uses only the Go standard library)
 - Generates responsive SVG output that adapts to container size while maintaining aspect ratio
 - Supports multiple chart types:
-  - Line charts
-  - Bar charts
+  - Line charts (with multiple series support)
+  - Bar charts (with multiple series support, grouped or stacked)
   - Pie/Donut charts
   - Heatmap charts (GitHub-style activity heatmap)
+- Multiple series support for line and bar charts
 - Customizable styling and options
 - Automatic dark mode support for system color scheme adaptation
 
@@ -76,6 +77,157 @@ chart.EnableDarkModeSupport(false)
 When the chart is rendered, it will automatically adapt based on the system's color scheme preferences. This works in modern browsers and SVG viewers that support the CSS `prefers-color-scheme` media query.
 
 See `examples/dark_mode_example.go` for a complete example.
+
+## Multiple Series Support
+
+GoSVGChart supports multiple data series for line and bar charts. This allows you to compare different datasets in the same chart.
+
+### Using the Go API
+
+```go
+// Create a line chart with multiple series
+chart := gosvgchart.NewLineChart().
+    SetTitle("Monthly Sales by Product").
+    SetSize(800, 500).
+    SetLabels([]string{"Jan", "Feb", "Mar", "Apr", "May", "Jun"})
+
+// Add multiple series
+chart.AddSeries("Product A", []float64{120, 150, 180, 210, 240, 270})
+chart.AddSeries("Product B", []float64{200, 180, 160, 140, 120, 100})
+chart.AddSeries("Product C", []float64{50, 80, 110, 140, 170, 200})
+
+// Set colors for the series
+chart.SetSeriesColors([]string{"#4285F4", "#EA4335", "#FBBC05", "#34A853"})
+
+// Enable legend
+chart.ShowLegend = true
+
+// Render the chart
+svg := chart.Render()
+```
+
+### Using the Markdown Format
+
+For line charts with multiple series:
+
+```
+linechart
+title: Monthly Sales by Product
+width: 800
+height: auto
+seriescolors: #4285F4, #EA4335, #FBBC05, #34A853
+
+series: Product A
+Jan | 120
+Feb | 150
+Mar | 180
+Apr | 210
+May | 240
+Jun | 270
+
+series: Product B
+Jan | 200
+Feb | 180
+Mar | 160
+Apr | 140
+May | 120
+Jun | 100
+
+series: Product C
+Jan | 50
+Feb | 80
+Mar | 110
+Apr | 140
+May | 170
+Jun | 200
+```
+
+For bar charts with multiple series (grouped):
+
+```
+barchart
+title: Quarterly Revenue by Region
+width: 800
+height: auto
+stacked: false
+seriescolors: #4285F4, #EA4335, #FBBC05, #34A853
+
+series: North
+Q1 | 150
+Q2 | 180
+Q3 | 210
+Q4 | 240
+
+series: South
+Q1 | 120
+Q2 | 140
+Q3 | 160
+Q4 | 180
+```
+
+For stacked bar charts:
+
+```
+barchart
+title: Quarterly Revenue by Region
+width: 800
+height: auto
+stacked: true
+seriescolors: #4285F4, #EA4335, #FBBC05, #34A853
+
+series: North
+Q1 | 150
+Q2 | 180
+Q3 | 210
+Q4 | 240
+
+series: South
+Q1 | 120
+Q2 | 140
+Q3 | 160
+Q4 | 180
+```
+
+### Tabular Format for Multiple Series
+
+GoSVGChart also supports a more intuitive tabular format for defining multiple series:
+
+```
+linechart
+title: Monthly Sales by Product
+width: 800
+height: auto
+seriescolors: #4285F4, #EA4335, #FBBC05
+
+series:
+Month | Product A | Product B | Product C
+Jan | 120 | 200 | 50
+Feb | 150 | 180 | 80
+Mar | 180 | 160 | 110
+Apr | 210 | 140 | 140
+May | 240 | 120 | 170
+Jun | 270 | 100 | 200
+```
+
+For bar charts with the tabular format:
+
+```
+barchart
+title: Quarterly Revenue by Region
+width: 800
+height: auto
+stacked: false
+seriescolors: #4285F4, #EA4335, #FBBC05, #34A853
+
+series:
+Quarter | North | South | East | West
+Q1 | 150 | 120 | 90 | 180
+Q2 | 180 | 140 | 110 | 200
+Q3 | 210 | 160 | 130 | 220
+Q4 | 240 | 180 | 150 | 240
+```
+
+For more examples of multiple series in markdown format, see [examples/multiple_series_markdown.md](examples/multiple_series_markdown.md).
 
 ## Installation
 

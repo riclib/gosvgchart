@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+## [0.8.0] - 2025-04-01
+
+### Added
+- Multiple series support for line and bar charts
+  - New `AddSeries()` and `SetSeriesColors()` methods for all chart types
+  - Support for stacked bar charts with multiple series
+  - Automatic legend generation for multiple series
+  - Updated markdown parser to support multiple series declarations
+  - New examples demonstrating multiple series usage
+- Tabular format for multiple series in markdown
+  - More intuitive and readable format for defining multiple series
+  - Series names defined in a header row followed by data rows
+  - Reduced repetition of labels and better alignment of data points
+  - Backward compatible with the original series format
+  - Examples added to documentation and demo page
+
 ## [0.7.0] - 2025-03-15
 
 ### Added
