@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+## [0.9.1] - 2025-02-26
+
+### Changed
+- Simplified chart generation instructions in prompt.md
+- Streamlined multiple series examples to use only tabular format
+- Improved documentation for better model usability
+
 ## [0.9.0] - 2025-02-26
 
 ### Added
