@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+## [0.9.0] - 2025-02-26
+
+### Added
+- Added LegendWidth property to reserve space for legends
+  - New SetLegendWidth() method for controlling legend position
+  - Default 20% width reservation for multiple series legends
+  - Adjusted chart area dimensions to prevent legend overlap
+  - Improved layout for pie charts with legends
+
 ## [0.8.0] - 2025-04-01
 
 ### Added

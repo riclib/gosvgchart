@@ -22,6 +22,7 @@ type ChartDefinition struct {
 	Series       []SeriesDefinition
 	SeriesColors []string
 	Stacked      bool
+	LegendWidth  float64
 }
 
 // SeriesDefinition represents a data series in a chart
@@ -379,6 +380,12 @@ func parseChartDefinition(markdown string, chartIndex int) (ChartDefinition, err
 					chartDef.Stacked = false
 				} else {
 					configErrors = append(configErrors, fmt.Sprintf("line %d: invalid stacked value '%s' - must be true/false, yes/no, or 1/0", i+1, value))
+				case "legendwidth":
+					if width, err := strconv.ParseFloat(value, 64); err == nil && width >= 0 && width <= 0.5 {
+						chartDef.LegendWidth = width
+					} else {
+						configErrors = append(configErrors, fmt.Sprintf("line %d: invalid legendwidth value \"%s\" - must be a number between 0 and 0.5", i+1, value))
+					}
 				}
 			default:
 				configErrors = append(configErrors, fmt.Sprintf("line %d: unknown configuration key '%s'", i+1, key))
@@ -480,6 +487,11 @@ func renderChartFromDefinition(chartDef ChartDefinition) (string, error) {
 	// Set labels
 	if len(chartDef.Labels) > 0 {
 		chart.SetLabels(chartDef.Labels)
+	}
+	
+	// Set legend width if specified
+	if chartDef.LegendWidth > 0 {
+		chart.SetLegendWidth(chartDef.LegendWidth)
 	}
 
 	// Render the chart

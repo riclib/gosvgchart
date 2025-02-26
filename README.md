@@ -151,6 +151,7 @@ width: 800
 height: auto
 stacked: false
 seriescolors: #4285F4, #EA4335, #FBBC05, #34A853
+legendwidth: 0.25
 
 series: North
 Q1 | 150
@@ -307,7 +308,8 @@ chart := gosvgchart.New().
     SetLabels([]string{"Jan", "Feb", "Mar", "Apr", "May", "Jun"}).
     SetColors([]string{"#3498db"}).
     SetSize(800, 0). // Height will be ignored when auto-height is enabled
-    SetAutoHeight(true)
+    SetAutoHeight(true).
+    SetLegendWidth(0.2) // Reserve 20% of chart width for the legend
 
 // Render to SVG string
 svg := chart.Render()
@@ -441,6 +443,7 @@ title: Revenue with Auto Height
 width: 800
 height: auto
 colors: #3498db
+legendwidth: 0.2
 
 data:
 Jan | 120
@@ -576,6 +579,7 @@ All chart types share these common methods:
 | `SetTitle(title string)` | Sets the chart title |
 | `SetSize(width, height int)` | Sets the chart dimensions in pixels |
 | `SetAutoHeight(auto bool)` | Enables automatic height calculation based on width (16:9 ratio for standard charts, 250px for heatmaps) |
+| `SetLegendWidth(percentage float64)` | Sets the width of the legend area as a percentage (0.0-0.5) of chart width |
 | `SetData(data []float64)` | Sets the chart data values |
 | `SetLabels(labels []string)` | Sets the chart labels |
 | `SetColors(colors []string)` | Sets the color palette as hex values (e.g., "#ff0000") |

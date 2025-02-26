@@ -19,6 +19,8 @@ type Chart interface {
 	// New methods for multiple series support
 	AddSeries(name string, data []float64) Chart
 	SetSeriesColors(colors []string) Chart
+	// Layout control
+	SetLegendWidth(percentage float64) Chart
 	Render() string
 }
 
@@ -37,6 +39,7 @@ type BaseChart struct {
 	SeriesColors []string
 	ShowTitle    bool
 	ShowLegend   bool
+	LegendWidth  float64  // Percentage of chart width (0.0-0.5) reserved for legend
 	Margin       struct {
 		Top    int
 		Right  int
@@ -114,6 +117,7 @@ func NewLineChart() *LineChart {
 			AutoHeight:      false,
 			ShowTitle:       true,
 			ShowLegend:      true,
+			LegendWidth:     0.2, // Reserve 20% of chart width for legend
 			BackgroundColor: "#ffffff",
 			DarkModeSupport: true, // Enable dark mode by default
 		},
@@ -145,6 +149,7 @@ func NewBarChart() *BarChart {
 			AutoHeight:      false,
 			ShowTitle:       true,
 			ShowLegend:      true,
+			LegendWidth:     0.2, // Reserve 20% of chart width for legend
 			BackgroundColor: "#ffffff",
 			DarkModeSupport: true, // Enable dark mode by default
 		},
@@ -176,6 +181,7 @@ func NewPieChart() *PieChart {
 			AutoHeight:      false,
 			ShowTitle:       true,
 			ShowLegend:      true,
+			LegendWidth:     0.2, // Reserve 20% of chart width for legend
 			BackgroundColor: "#ffffff",
 			DarkModeSupport: true, // Enable dark mode by default
 		},
@@ -208,6 +214,7 @@ func NewHeatmapChart() *HeatmapChart {
 			AutoHeight:      false,
 			ShowTitle:       true,
 			ShowLegend:      true,
+			LegendWidth:     0.2, // Reserve 20% of chart width for legend
 			BackgroundColor: "#ffffff",
 			DarkModeSupport: true, // Enable dark mode by default
 		},
@@ -288,6 +295,12 @@ func (c *LineChart) SetSeriesColors(colors []string) Chart {
 	return c
 }
 
+// SetLegendWidth sets the width of the legend area as a percentage of the chart width
+func (c *LineChart) SetLegendWidth(percentage float64) Chart {
+	c.BaseChart.SetLegendWidth(percentage)
+	return c
+}
+
 // BarChart methods to implement Chart interface
 
 // SetTitle sets the chart title
@@ -337,6 +350,12 @@ func (c *BarChart) AddSeries(name string, data []float64) Chart {
 // SetSeriesColors sets the colors for multiple data series
 func (c *BarChart) SetSeriesColors(colors []string) Chart {
 	c.SeriesColors = colors
+	return c
+}
+
+// SetLegendWidth sets the width of the legend area as a percentage of the chart width
+func (c *BarChart) SetLegendWidth(percentage float64) Chart {
+	c.BaseChart.SetLegendWidth(percentage)
 	return c
 }
 
@@ -393,6 +412,12 @@ func (c *PieChart) AddSeries(name string, data []float64) Chart {
 // For pie charts, this is the same as SetColors
 func (c *PieChart) SetSeriesColors(colors []string) Chart {
 	c.Colors = colors
+	return c
+}
+
+// SetLegendWidth sets the width of the legend area as a percentage of the chart width
+func (c *PieChart) SetLegendWidth(percentage float64) Chart {
+	c.BaseChart.SetLegendWidth(percentage)
 	return c
 }
 
@@ -587,9 +612,21 @@ func (c *LineChart) Render() string {
 		}
 	}
 
-	// Chart area dimensions
-	chartWidth := c.Width - c.Margin.Left - c.Margin.Right
+	// Calculate the legend area width in pixels (if legend is shown)
+	var legendAreaWidth int
+	if c.ShowLegend && c.LegendWidth > 0 && len(c.Series) > 0 {
+		legendAreaWidth = int(float64(c.Width) * c.LegendWidth)
+	}
+
+	// Chart area dimensions (reduced by legend width if showing legend)
+	chartWidth := c.Width - c.Margin.Left - c.Margin.Right - legendAreaWidth
 	chartHeight := c.Height - c.Margin.Top - c.Margin.Bottom
+	
+	// Adjust legendX calculation for later use based on the reserved area
+	legendX := c.Width - c.Margin.Right - 150
+	if c.ShowLegend && c.LegendWidth > 0 && len(c.Series) > 0 {
+		legendX = c.Width - legendAreaWidth + 20
+	}
 
 	// Calculate scales
 	var maxValue float64
@@ -693,7 +730,7 @@ func (c *LineChart) Render() string {
 		// Draw legend if we have multiple series
 		if c.ShowLegend && len(c.Series) > 0 {
 			legendY := c.Margin.Top + 20
-			legendX := c.Width - c.Margin.Right - 150
+ 				// Using the legendX value pre-calculated above based on reserved legend area
 
 			for i, series := range c.Series {
 				// Determine color for this series
@@ -816,6 +853,12 @@ func (c *BarChart) Render() string {
 		// For standard charts, use a 16:9 aspect ratio (common screen format)
 		c.Height = c.Width * 9 / 16
 	}
+	
+	// Calculate the legend area width in pixels (if legend is shown)
+	var legendAreaWidth int
+	if c.ShowLegend && c.LegendWidth > 0 && len(c.Series) > 0 {
+		legendAreaWidth = int(float64(c.Width) * c.LegendWidth)
+	}
 
 	// Start SVG with namespace
 	svg.WriteString(fmt.Sprintf(`<svg width="100%%" height="auto" viewBox="0 0 %d %d" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">`, c.Width, c.Height))
@@ -867,9 +910,15 @@ func (c *BarChart) Render() string {
 		}
 	}
 
-	// Chart area dimensions
-	chartWidth := c.Width - c.Margin.Left - c.Margin.Right
+	// Chart area dimensions (reduced by legend width if showing legend)
+	chartWidth := c.Width - c.Margin.Left - c.Margin.Right - legendAreaWidth
 	chartHeight := c.Height - c.Margin.Top - c.Margin.Bottom
+	
+	// Adjust legendX calculation for later use based on the reserved area
+	legendX := c.Width - c.Margin.Right - 150
+	if c.ShowLegend && c.LegendWidth > 0 && len(c.Series) > 0 {
+		legendX = c.Width - legendAreaWidth + 20
+	}
 
 	// Check if we have multiple series
 	hasMultipleSeries := len(c.Series) > 0
@@ -1068,7 +1117,7 @@ func (c *BarChart) Render() string {
 					// Add value text on top of bar
 					if c.DarkModeSupport {
 						svg.WriteString(fmt.Sprintf(`<text x="%d" y="%d" text-anchor="middle" font-family="Arial" font-size="12" fill="var(--chart-text)">%.0f</text>`,
-							barX+barWidth/2, barY-5, value))
+ 							barX+barWidth/2, barY-5, value))
 					} else {
 						svg.WriteString(fmt.Sprintf(`<text x="%d" y="%d" text-anchor="middle" font-family="Arial" font-size="12" fill="black">%.0f</text>`,
 							barX+barWidth/2, barY-5, value))
@@ -1080,7 +1129,7 @@ func (c *BarChart) Render() string {
 		// Draw legend if we have multiple series
 		if c.ShowLegend && len(c.Series) > 0 {
 			legendY := c.Margin.Top + 20
-			legendX := c.Width - c.Margin.Right - 150
+ 				// Using the legendX value pre-calculated above based on reserved legend area
 
 			for i, series := range c.Series {
 				// Determine color for this series
@@ -1179,6 +1228,12 @@ func (c *PieChart) Render() string {
 	if c.AutoHeight {
 		c.Height = c.Width // For pie charts, use a square aspect ratio
 	}
+	
+	// Calculate the legend area width in pixels (if legend is shown)
+	var legendAreaWidth int
+	if c.ShowLegend && c.LegendWidth > 0 && len(c.Labels) > 0 {
+		legendAreaWidth = int(float64(c.Width) * c.LegendWidth)
+	}
 
 	// Start SVG with namespace
 	svg.WriteString(fmt.Sprintf(`<svg width="100%%" height="auto" viewBox="0 0 %d %d" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">`, c.Width, c.Height))
@@ -1236,10 +1291,21 @@ func (c *PieChart) Render() string {
 		total += v
 	}
 
-	// Center and radius
-	centerX := c.Width / 2
+	// Center and radius - account for reserved legend width
+	var adjustedWidth int
+	var centerX int
+	if c.ShowLegend && c.LegendWidth > 0 && len(c.Labels) > 0 {
+		// Shift center left if legend width is reserved
+		adjustedWidth = c.Width - legendAreaWidth
+		centerX = adjustedWidth / 2 + c.Margin.Left
+	} else {
+		adjustedWidth = c.Width
+		centerX = c.Width / 2
+	}
 	centerY := c.Height / 2
-	radius := int(math.Min(float64(c.Width-c.Margin.Left-c.Margin.Right),
+	
+	// Adjust radius to account for legend area
+	radius := int(math.Min(float64(adjustedWidth-c.Margin.Left-c.Margin.Right),
 		float64(c.Height-c.Margin.Top-c.Margin.Bottom))) / 2
 
 	innerRadius := int(float64(radius) * c.DonutHolePercentage)
@@ -1328,7 +1394,14 @@ func (c *PieChart) Render() string {
 		// Draw legend
 		if c.ShowLegend && len(c.Labels) > 0 {
 			// Position legend based on available space
-			legendX := c.Width - c.Margin.Right + 20
+			var legendX int
+			if c.LegendWidth > 0 {
+				// Position in the reserved legend area
+				legendX = c.Width - legendAreaWidth + 20
+			} else {
+				// Legacy positioning
+				legendX = c.Width - c.Margin.Right + 20
+			}
 			legendY := c.Margin.Top
 
 			// Calculate total height needed for the legend
@@ -1675,6 +1748,18 @@ func (chart *BaseChart) SetLightTheme(backgroundColor, textColor, axisColor, gri
 	return chart
 }
 
+// SetLegendWidth sets the width of the legend area as a percentage of the chart width
+func (chart *BaseChart) SetLegendWidth(percentage float64) *BaseChart {
+	if percentage < 0 {
+		percentage = 0
+	}
+	if percentage > 0.5 {
+		percentage = 0.5 // Limit to 50% of chart width
+	}
+	chart.LegendWidth = percentage
+	return chart
+}
+
 // AddSeries adds a new data series to the heatmap chart
 // Note: Heatmap charts typically don't support multiple series in the same way as line/bar charts
 // This implementation will replace the existing data with the new series
@@ -1688,5 +1773,11 @@ func (c *HeatmapChart) AddSeries(name string, data []float64) Chart {
 // For heatmaps, this is the same as SetColors
 func (c *HeatmapChart) SetSeriesColors(colors []string) Chart {
 	c.Colors = colors
+	return c
+}
+
+// SetLegendWidth sets the width of the legend area as a percentage of the chart width
+func (c *HeatmapChart) SetLegendWidth(percentage float64) Chart {
+	c.BaseChart.SetLegendWidth(percentage)
 	return c
 }
