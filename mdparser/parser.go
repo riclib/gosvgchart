@@ -11,21 +11,21 @@ import (
 
 // ChartDefinition represents a parsed chart definition
 type ChartDefinition struct {
-	ChartType      string
-	Title          string
-	Width          int
-	Height         int
-	Colors         []string
-	Data           []float64
-	Labels         []string
-	AutoHeight     bool
-	Series         []SeriesDefinition
-	SeriesColors   []string
-	Stacked        bool
-	LegendWidth    float64
-	Palette        string // "auto" or "gradient"
+	ChartType       string
+	Title           string
+	Width           int
+	Height          int
+	Colors          []string
+	Data            []float64
+	Labels          []string
+	AutoHeight      bool
+	Series          []SeriesDefinition
+	SeriesColors    []string
+	Stacked         bool
+	LegendWidth     float64
+	Palette         string // "auto" or "gradient"
 	SupportNegative bool
-	NegativeColors []string
+	NegativeColors  []string
 }
 
 // SeriesDefinition represents a data series in a chart
@@ -191,25 +191,6 @@ func parseChartDefinition(markdown string, chartIndex int) (ChartDefinition, err
 				i++
 				continue
 			}
-		}
-
-		// Check for traditional series section
-		if strings.HasPrefix(line, "series:") && !inTabularFormat {
-			dataStarted = true
-			foundDataSection = true
-			// Extract series name
-			parts := strings.SplitN(line, ":", 2)
-			if len(parts) == 2 {
-				currentSeries = strings.TrimSpace(parts[1])
-				// Create a new series
-				chartDef.Series = append(chartDef.Series, SeriesDefinition{
-					Name: currentSeries,
-					Data: []float64{},
-				})
-			} else {
-				dataErrors = append(dataErrors, fmt.Sprintf("line %d: invalid series format, expected 'series: name'", i+1))
-			}
-			continue
 		}
 
 		if dataStarted {
@@ -476,12 +457,12 @@ func renderChartFromDefinition(chartDef ChartDefinition) (string, error) {
 	case "heatmap", "heatmapchart":
 		heatmapChart := gosvgchart.NewHeatmapChart()
 		chart = heatmapChart
-		
+
 		// Set heatmap specific properties
 		if chartDef.SupportNegative {
 			heatmapChart.EnableNegativeValues(chartDef.SupportNegative)
 		}
-		
+
 		if len(chartDef.NegativeColors) > 0 {
 			heatmapChart.SetNegativeColors(chartDef.NegativeColors)
 		}
@@ -529,7 +510,7 @@ func renderChartFromDefinition(chartDef ChartDefinition) (string, error) {
 	if len(chartDef.Labels) > 0 {
 		chart.SetLabels(chartDef.Labels)
 	}
-	
+
 	// Set legend width if specified
 	if chartDef.LegendWidth > 0 {
 		chart.SetLegendWidth(chartDef.LegendWidth)
