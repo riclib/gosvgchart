@@ -172,7 +172,7 @@ svg := chart.Render()
 
 ### Using the Markdown Format
 
-For line charts with multiple series:
+For charts with multiple series, use the tabular format:
 
 ```
 linechart
@@ -181,29 +181,14 @@ width: 800
 height: auto
 seriescolors: #4285F4, #EA4335, #FBBC05, #34A853
 
-series: Product A
-Jan | 120
-Feb | 150
-Mar | 180
-Apr | 210
-May | 240
-Jun | 270
-
-series: Product B
-Jan | 200
-Feb | 180
-Mar | 160
-Apr | 140
-May | 120
-Jun | 100
-
-series: Product C
-Jan | 50
-Feb | 80
-Mar | 110
-Apr | 140
-May | 170
-Jun | 200
+series:
+Month | Product A | Product B | Product C
+Jan | 120 | 200 | 50
+Feb | 150 | 180 | 80
+Mar | 180 | 160 | 110
+Apr | 210 | 140 | 140
+May | 240 | 120 | 170
+Jun | 270 | 100 | 200
 ```
 
 For bar charts with multiple series (grouped):
@@ -217,17 +202,12 @@ stacked: false
 seriescolors: #4285F4, #EA4335, #FBBC05, #34A853
 legendwidth: 0.25
 
-series: North
-Q1 | 150
-Q2 | 180
-Q3 | 210
-Q4 | 240
-
-series: South
-Q1 | 120
-Q2 | 140
-Q3 | 160
-Q4 | 180
+series:
+Quarter | North | South | East | West
+Q1 | 150 | 120 | 90 | 180
+Q2 | 180 | 140 | 110 | 200
+Q3 | 210 | 160 | 130 | 220
+Q4 | 240 | 180 | 150 | 240
 ```
 
 For stacked bar charts:
@@ -238,50 +218,6 @@ title: Quarterly Revenue by Region
 width: 800
 height: auto
 stacked: true
-seriescolors: #4285F4, #EA4335, #FBBC05, #34A853
-
-series: North
-Q1 | 150
-Q2 | 180
-Q3 | 210
-Q4 | 240
-
-series: South
-Q1 | 120
-Q2 | 140
-Q3 | 160
-Q4 | 180
-```
-
-### Tabular Format for Multiple Series
-
-GoSVGChart also supports a more intuitive tabular format for defining multiple series:
-
-```
-linechart
-title: Monthly Sales by Product
-width: 800
-height: auto
-seriescolors: #4285F4, #EA4335, #FBBC05
-
-series:
-Month | Product A | Product B | Product C
-Jan | 120 | 200 | 50
-Feb | 150 | 180 | 80
-Mar | 180 | 160 | 110
-Apr | 210 | 140 | 140
-May | 240 | 120 | 170
-Jun | 270 | 100 | 200
-```
-
-For bar charts with the tabular format:
-
-```
-barchart
-title: Quarterly Revenue by Region
-width: 800
-height: auto
-stacked: false
 seriescolors: #4285F4, #EA4335, #FBBC05, #34A853
 
 series:
