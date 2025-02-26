@@ -8,6 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+## [0.9.3] - 2025-02-26
+
+### Changed
+- Updated web server examples to use tabular format for multiple series
+- Ensured consistency in all code examples and documentation
+- Removed all references to traditional multiple series format
+
+## [0.9.2] - 2025-02-26
+
+### Added
 - Added palette feature for automatic color assignment
   - New "auto" palette assigns distinct colors to data points or series
   - New "gradient" palette creates color gradients by varying lightness
