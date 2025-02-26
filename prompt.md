@@ -46,31 +46,7 @@ The label is a text description, and the value must be a number.
 
 ### Multiple Series Support
 
-For charts with multiple data series (line charts and bar charts), you can use either of these formats:
-
-#### Traditional Format
-
-```gosvgchart
-linechart
-title: Monthly Sales by Product
-width: 800
-height: auto
-seriescolors: #4285F4, #EA4335, #FBBC05
-
-series: Product A
-Jan | 120
-Feb | 150
-Mar | 180
-
-series: Product B
-Jan | 200
-Feb | 180
-Mar | 160
-```
-
-#### Tabular Format (Recommended)
-
-The tabular format is more intuitive and easier to read:
+For charts with multiple data series (line charts and bar charts), use the tabular format which is intuitive and easy to read:
 
 ```gosvgchart
 linechart
