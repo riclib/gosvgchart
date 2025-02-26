@@ -100,6 +100,8 @@ func parseMultipleCharts(chartBlocks []string) (string, error) {
 
 // parseChartDefinition parses a single chart definition
 func parseChartDefinition(markdown string, chartIndex int) (ChartDefinition, error) {
+	markdown = strings.ReplaceAll(markdown, "\n\n", "\n")
+
 	lines := strings.Split(markdown, "\n")
 
 	var chartDef ChartDefinition
