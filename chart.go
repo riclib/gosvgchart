@@ -21,6 +21,8 @@ type Chart interface {
 	SetSeriesColors(colors []string) Chart
 	// Layout control
 	SetLegendWidth(percentage float64) Chart
+	// Color management
+	SetPalette(palette string) Chart
 	Render() string
 }
 
@@ -40,6 +42,7 @@ type BaseChart struct {
 	ShowTitle    bool
 	ShowLegend   bool
 	LegendWidth  float64  // Percentage of chart width (0.0-0.5) reserved for legend
+	Palette      string   // "auto" or "gradient" for automatic color assignment
 	Margin       struct {
 		Top    int
 		Right  int
@@ -301,6 +304,12 @@ func (c *LineChart) SetLegendWidth(percentage float64) Chart {
 	return c
 }
 
+// SetPalette sets the color palette mode for automatic color assignment
+func (c *LineChart) SetPalette(palette string) Chart {
+	c.BaseChart.SetPalette(palette)
+	return c
+}
+
 // BarChart methods to implement Chart interface
 
 // SetTitle sets the chart title
@@ -356,6 +365,12 @@ func (c *BarChart) SetSeriesColors(colors []string) Chart {
 // SetLegendWidth sets the width of the legend area as a percentage of the chart width
 func (c *BarChart) SetLegendWidth(percentage float64) Chart {
 	c.BaseChart.SetLegendWidth(percentage)
+	return c
+}
+
+// SetPalette sets the color palette mode for automatic color assignment
+func (c *BarChart) SetPalette(palette string) Chart {
+	c.BaseChart.SetPalette(palette)
 	return c
 }
 
@@ -418,6 +433,12 @@ func (c *PieChart) SetSeriesColors(colors []string) Chart {
 // SetLegendWidth sets the width of the legend area as a percentage of the chart width
 func (c *PieChart) SetLegendWidth(percentage float64) Chart {
 	c.BaseChart.SetLegendWidth(percentage)
+	return c
+}
+
+// SetPalette sets the color palette mode for automatic color assignment
+func (c *PieChart) SetPalette(palette string) Chart {
+	c.BaseChart.SetPalette(palette)
 	return c
 }
 
@@ -1760,6 +1781,120 @@ func (chart *BaseChart) SetLegendWidth(percentage float64) *BaseChart {
 	return chart
 }
 
+// SetPalette sets the color palette mode for automatic color assignment
+// Valid options are "auto" and "gradient"
+func (chart *BaseChart) SetPalette(palette string) *BaseChart {
+	palette = strings.ToLower(palette)
+	if palette == "auto" || palette == "gradient" {
+		chart.Palette = palette
+		
+		// Generate automatic colors based on the palette
+		chart.generatePaletteColors()
+	}
+	return chart
+}
+
+// generatePaletteColors generates colors based on the selected palette
+func (chart *BaseChart) generatePaletteColors() {
+	// Define a set of vibrant, contrasting base colors for the "auto" palette
+	autoBaseColors := []string{
+		"#4285F4", // Google Blue
+		"#EA4335", // Google Red
+		"#FBBC05", // Google Yellow 
+		"#34A853", // Google Green
+		"#8AB4F8", // Light Blue
+		"#F6AEA9", // Light Red
+		"#FDE293", // Light Yellow
+		"#A8DAB5", // Light Green
+		"#673AB7", // Purple
+		"#FF9800", // Orange
+		"#00BCD4", // Cyan
+		"#795548", // Brown
+	}
+	
+	// Define base hues for gradient palette (in HSL degrees)
+	// Well-separated hues for distinct series
+	gradientBaseHues := []int{
+		210, // Blue
+		0,   // Red
+		120, // Green
+		45,  // Orange
+		275, // Purple
+		170, // Teal
+		320, // Pink
+		90,  // Yellow-Green
+	}
+	
+	switch chart.Palette {
+	case "auto":
+		// For standard charts with a single data set
+		if len(chart.Series) == 0 || len(chart.Series) == 1 {
+			// Set colors for data points if provided data slice is non-empty
+			if len(chart.Data) > 0 {
+				// For single series, generate a color for each data point
+				// using even distribution from the auto color palette
+				numColors := len(chart.Data)
+				colors := make([]string, numColors)
+				
+				for i := 0; i < numColors; i++ {
+					colorIndex := i % len(autoBaseColors)
+					colors[i] = autoBaseColors[colorIndex]
+				}
+				
+				chart.Colors = colors
+			}
+		} else {
+			// For multiple series, use one color per series
+			numSeries := len(chart.Series)
+			seriesColors := make([]string, numSeries)
+			
+			for i := 0; i < numSeries; i++ {
+				colorIndex := i % len(autoBaseColors)
+				seriesColors[i] = autoBaseColors[colorIndex]
+			}
+			
+			chart.SeriesColors = seriesColors
+		}
+		
+	case "gradient":
+		// Gradient mode creates a gradient from darker to lighter within each series
+		if len(chart.Series) == 0 || len(chart.Series) == 1 {
+			// For single series/dataset, create a monochromatic gradient
+			if len(chart.Data) > 0 {
+				baseHue := 210 // Default to blue
+				numColors := len(chart.Data)
+				colors := make([]string, numColors)
+				
+				// Generate a gradient from dark to light with the same hue
+				for i := 0; i < numColors; i++ {
+					// Calculate lightness from 30% to 70%
+					lightness := 30 + (40 * i / (numColors - 1))
+					// Keep saturation constant at 70%
+					colors[i] = fmt.Sprintf("hsl(%d, 70%%, %d%%)", baseHue, lightness)
+				}
+				
+				chart.Colors = colors
+			}
+		} else {
+			// For multiple series, each series gets its own hue
+			// but data points within a series fade from dark to light
+			numSeries := len(chart.Series)
+			seriesColors := make([]string, numSeries)
+			
+			// Assign a unique hue to each series
+			for i := 0; i < numSeries; i++ {
+				hueIndex := i % len(gradientBaseHues)
+				hue := gradientBaseHues[hueIndex]
+				
+				// Medium saturation and lightness for series colors
+				seriesColors[i] = fmt.Sprintf("hsl(%d, 70%%, 50%%)", hue)
+			}
+			
+			chart.SeriesColors = seriesColors
+		}
+	}
+}
+
 // AddSeries adds a new data series to the heatmap chart
 // Note: Heatmap charts typically don't support multiple series in the same way as line/bar charts
 // This implementation will replace the existing data with the new series
@@ -1779,5 +1914,11 @@ func (c *HeatmapChart) SetSeriesColors(colors []string) Chart {
 // SetLegendWidth sets the width of the legend area as a percentage of the chart width
 func (c *HeatmapChart) SetLegendWidth(percentage float64) Chart {
 	c.BaseChart.SetLegendWidth(percentage)
+	return c
+}
+
+// SetPalette sets the color palette mode for automatic color assignment
+func (c *HeatmapChart) SetPalette(palette string) Chart {
+	c.BaseChart.SetPalette(palette)
 	return c
 }

@@ -23,6 +23,7 @@ type ChartDefinition struct {
 	SeriesColors []string
 	Stacked      bool
 	LegendWidth  float64
+	Palette      string // "auto" or "gradient"
 }
 
 // SeriesDefinition represents a data series in a chart
@@ -107,6 +108,7 @@ func parseChartDefinition(markdown string, chartIndex int) (ChartDefinition, err
 	chartDef.Title = "Chart"
 	chartDef.AutoHeight = false
 	chartDef.Stacked = false
+	chartDef.Palette = "" // Empty means no palette specified
 
 	if len(lines) < 3 {
 		return chartDef, fmt.Errorf("chart format invalid - too few lines. Need at least chart type, configuration, and data sections")
@@ -380,12 +382,19 @@ func parseChartDefinition(markdown string, chartIndex int) (ChartDefinition, err
 					chartDef.Stacked = false
 				} else {
 					configErrors = append(configErrors, fmt.Sprintf("line %d: invalid stacked value '%s' - must be true/false, yes/no, or 1/0", i+1, value))
-				case "legendwidth":
-					if width, err := strconv.ParseFloat(value, 64); err == nil && width >= 0 && width <= 0.5 {
-						chartDef.LegendWidth = width
-					} else {
-						configErrors = append(configErrors, fmt.Sprintf("line %d: invalid legendwidth value \"%s\" - must be a number between 0 and 0.5", i+1, value))
-					}
+				}
+			case "legendwidth":
+				if width, err := strconv.ParseFloat(value, 64); err == nil && width >= 0 && width <= 0.5 {
+					chartDef.LegendWidth = width
+				} else {
+					configErrors = append(configErrors, fmt.Sprintf("line %d: invalid legendwidth value '%s' - must be a number between 0 and 0.5", i+1, value))
+				}
+			case "palette":
+				value = strings.ToLower(value)
+				if value == "auto" || value == "gradient" {
+					chartDef.Palette = value
+				} else {
+					configErrors = append(configErrors, fmt.Sprintf("line %d: invalid palette value '%s' - must be 'auto' or 'gradient'", i+1, value))
 				}
 			default:
 				configErrors = append(configErrors, fmt.Sprintf("line %d: unknown configuration key '%s'", i+1, key))
@@ -462,14 +471,19 @@ func renderChartFromDefinition(chartDef ChartDefinition) (string, error) {
 		chart.SetSize(chartDef.Width, chartDef.Height)
 	}
 
-	// Set colors
-	if len(chartDef.Colors) > 0 {
+	// Set colors if specified (and not using palette)
+	if len(chartDef.Colors) > 0 && chartDef.Palette == "" {
 		chart.SetColors(chartDef.Colors)
 	}
 
-	// Set series colors if specified
-	if len(chartDef.SeriesColors) > 0 {
+	// Set series colors if specified (and not using palette)
+	if len(chartDef.SeriesColors) > 0 && chartDef.Palette == "" {
 		chart.SetSeriesColors(chartDef.SeriesColors)
+	}
+
+	// Set palette if specified
+	if chartDef.Palette != "" {
+		chart.SetPalette(chartDef.Palette)
 	}
 
 	// Check if we have multiple series

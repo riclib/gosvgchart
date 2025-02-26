@@ -36,6 +36,7 @@ Choose one of these chart types based on the data:
 - `colors` - Comma-separated list of hex color codes (e.g., #3498db, #e74c3c)
 - `seriescolors` - Comma-separated list of hex color codes for multiple series (e.g., #3498db, #e74c3c)
 - `stacked` - For bar charts with multiple series, set to `true` for stacked bars or `false` for grouped bars
+- `palette` - Automatic color assignment: "auto" for distinct colors or "gradient" for color gradients
 
 ### Data Section
 
@@ -132,14 +133,14 @@ May | 58000
 Jun | 72000
 ```
 
-### Multiple Series Line Chart Example
+### Multiple Series Line Chart Example (with Palette)
 
 ```gosvgchart
 linechart
 title: Monthly Sales by Product
 width: 800
 height: 500
-seriescolors: #4285F4, #EA4335, #FBBC05
+palette: auto
 
 series:
 Month | Product A | Product B | Product C
@@ -167,7 +168,7 @@ Home & Garden | 62000
 Toys | 43000
 ```
 
-### Multiple Series Bar Chart Example (Grouped)
+### Multiple Series Bar Chart Example (Grouped with Gradient Palette)
 
 ```gosvgchart
 barchart
@@ -175,7 +176,7 @@ title: Quarterly Revenue by Region
 width: 800
 height: 500
 stacked: false
-seriescolors: #4285F4, #EA4335, #FBBC05, #34A853
+palette: gradient
 
 series:
 Quarter | North | South | East | West
@@ -203,14 +204,14 @@ Q3 | 210 | 160 | 130 | 220
 Q4 | 240 | 180 | 150 | 240
 ```
 
-### Pie Chart Example
+### Pie Chart Example (with Auto Palette)
 
 ```gosvgchart
 piechart
 title: Market Share by Region
 width: 600
 height: 600
-colors: #3498db, #e74c3c, #f39c12, #2ecc71, #9b59b6
+palette: auto
 
 data:
 North America | 35
@@ -280,5 +281,6 @@ Product C | 30
 6. For multiple series, use the tabular format for better readability when possible.
 7. For comparing data side by side, use the `---` separator within a single code block.
 8. For bar charts with multiple series, specify `stacked: true` or `stacked: false` to control the display style.
+9. Use `palette: auto` or `palette: gradient` for automatic color generation instead of manually specifying colors.
 
 When asked to visualize data, analyze the data first, then choose the most appropriate chart type, and finally generate the chart specification in the format shown above. If multiple comparisons are needed, consider using multiple series or side-by-side charts.

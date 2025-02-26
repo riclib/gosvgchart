@@ -36,6 +36,70 @@ This means the dimensions you specify (via `SetSize()` or in the markdown format
 </svg>
 ```
 
+## Automatic Color Palettes
+
+GoSVGChart provides two automatic color palette modes:
+
+### Auto Palette
+
+The `auto` palette assigns visually distinct colors to data points or series:
+
+```go
+// For a single data series
+chart := gosvgchart.NewBarChart().
+    SetTitle("Monthly Sales").
+    SetData([]float64{120, 250, 180, 310, 270, 390}).
+    SetLabels([]string{"Jan", "Feb", "Mar", "Apr", "May", "Jun"}).
+    SetPalette("auto")
+
+// For multiple series
+lineChart := gosvgchart.NewLineChart().
+    SetTitle("Monthly Sales by Product").
+    SetLabels([]string{"Jan", "Feb", "Mar", "Apr", "May", "Jun"}).
+    SetPalette("auto")
+
+// Add series
+lineChart.AddSeries("Product A", []float64{120, 150, 180, 210, 240, 270})
+lineChart.AddSeries("Product B", []float64{200, 180, 160, 140, 120, 100})
+```
+
+In Markdown format:
+```
+linechart
+title: Monthly Sales by Product
+width: 800
+height: 500
+palette: auto
+
+series:
+Month | Product A | Product B | Product C
+Jan | 120 | 200 | 50
+Feb | 150 | 180 | 80
+```
+
+### Gradient Palette
+
+The `gradient` palette creates color gradients with varying lightness:
+
+```go
+// Single series gradient (monochromatic)
+chart := gosvgchart.NewBarChart().
+    SetTitle("Monthly Sales").
+    SetData([]float64{120, 250, 180, 310, 270, 390}).
+    SetLabels([]string{"Jan", "Feb", "Mar", "Apr", "May", "Jun"}).
+    SetPalette("gradient")
+
+// Multiple series gradient (each series gets its own hue)
+lineChart := gosvgchart.NewLineChart().
+    SetTitle("Monthly Sales by Product").
+    SetLabels([]string{"Jan", "Feb", "Mar", "Apr", "May", "Jun"}).
+    SetPalette("gradient")
+
+// Add series
+lineChart.AddSeries("Product A", []float64{120, 150, 180, 210, 240, 270})
+lineChart.AddSeries("Product B", []float64{200, 180, 160, 140, 120, 100})
+```
+
 ## Dark Mode Support
 
 SVGs created with GoSVGChart automatically adapt to the user's system color scheme preference (light/dark mode). This feature uses CSS and the `prefers-color-scheme` media query to switch between defined color themes without requiring JavaScript.

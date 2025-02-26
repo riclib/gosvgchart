@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added palette feature for automatic color assignment
+  - New "auto" palette assigns distinct colors to data points or series
+  - New "gradient" palette creates color gradients by varying lightness
+  - Added SetPalette() method to the Chart interface
+  - Works with all chart types including multiple series charts
 
 ## [0.9.1] - 2025-02-26
 
