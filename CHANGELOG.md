@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.2]
+### Changed
+- ignore invalid parameters
+
+## [0.10.1]
+### Changed
+- Remove support for legacy series
+- Ignore double newlines
+
 ## [0.10.0] - 2025-02-26
 
 ### Changed

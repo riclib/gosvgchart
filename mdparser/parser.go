@@ -397,7 +397,8 @@ func parseChartDefinition(markdown string, chartIndex int) (ChartDefinition, err
 					chartDef.NegativeColors = colorList
 				}
 			default:
-				configErrors = append(configErrors, fmt.Sprintf("line %d: unknown configuration key '%s'", i+1, key))
+				//configErrors = append(configErrors, fmt.Sprintf("line %d: unknown configuration key '%s'", i+1, key))
+				continue //ignore made up parameters
 			}
 		}
 	}
