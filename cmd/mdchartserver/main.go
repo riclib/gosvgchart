@@ -159,7 +159,14 @@ width: 800
 height: auto
 seriescolors: #4285F4, #EA4335, #FBBC05, #34A853
 
-series: Product A
+series:
+Month | Product A | Product B | Product C
+Jan | 120 | 200 | 50
+Feb | 150 | 180 | 80
+Mar | 180 | 160 | 110
+Apr | 210 | 140 | 140
+May | 240 | 120 | 170
+Jun | 270 | 100 | 200
 Jan | 120
 Feb | 150
 Mar | 180
@@ -208,7 +215,12 @@ height: auto
 stacked: false
 seriescolors: #4285F4, #EA4335, #FBBC05, #34A853
 
-series: North
+series:
+Quarter | North | South | East | West
+Q1 | 150 | 120 | 90 | 180
+Q2 | 180 | 140 | 110 | 200
+Q3 | 210 | 160 | 130 | 220
+Q4 | 240 | 180 | 150 | 240
 Q1 | 150
 Q2 | 180
 Q3 | 210
@@ -242,7 +254,12 @@ height: auto
 stacked: true
 seriescolors: #4285F4, #EA4335, #FBBC05, #34A853
 
-series: North
+series:
+Quarter | North | South | East | West
+Q1 | 150 | 120 | 90 | 180
+Q2 | 180 | 140 | 110 | 200
+Q3 | 210 | 160 | 130 | 220
+Q4 | 240 | 180 | 150 | 240
 Q1 | 150
 Q2 | 180
 Q3 | 210
