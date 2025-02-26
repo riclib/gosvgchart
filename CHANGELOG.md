@@ -7,7 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.0] - 2025-02-26
+
+### Changed
+- All Charts in example use new tabular format
+- Heatmap chart default and examples now with 250 height
+
 ### Added
+- Support for positive and negative values in heatmap charts
+  - New methods for heatmaps: `SetNegativeColors()`, `EnableNegativeValues()`, and `SetMinValue()`
+  - Separate color scales for positive and negative values with improved legend display
+  - Example showing feedback visualization with positive/negative ratings
+  - Markdown parser support for `negativecolors` and `supportnegative` options
 
 ## [0.9.3] - 2025-02-26
 

@@ -11,19 +11,21 @@ import (
 
 // ChartDefinition represents a parsed chart definition
 type ChartDefinition struct {
-	ChartType    string
-	Title        string
-	Width        int
-	Height       int
-	Colors       []string
-	Data         []float64
-	Labels       []string
-	AutoHeight   bool
-	Series       []SeriesDefinition
-	SeriesColors []string
-	Stacked      bool
-	LegendWidth  float64
-	Palette      string // "auto" or "gradient"
+	ChartType      string
+	Title          string
+	Width          int
+	Height         int
+	Colors         []string
+	Data           []float64
+	Labels         []string
+	AutoHeight     bool
+	Series         []SeriesDefinition
+	SeriesColors   []string
+	Stacked        bool
+	LegendWidth    float64
+	Palette        string // "auto" or "gradient"
+	SupportNegative bool
+	NegativeColors []string
 }
 
 // SeriesDefinition represents a data series in a chart
@@ -396,6 +398,21 @@ func parseChartDefinition(markdown string, chartIndex int) (ChartDefinition, err
 				} else {
 					configErrors = append(configErrors, fmt.Sprintf("line %d: invalid palette value '%s' - must be 'auto' or 'gradient'", i+1, value))
 				}
+			case "supportnegative":
+				if strings.ToLower(value) == "true" || strings.ToLower(value) == "yes" || value == "1" {
+					chartDef.SupportNegative = true
+				} else if strings.ToLower(value) == "false" || strings.ToLower(value) == "no" || value == "0" {
+					chartDef.SupportNegative = false
+				} else {
+					configErrors = append(configErrors, fmt.Sprintf("line %d: invalid supportnegative value '%s' - must be true/false, yes/no, or 1/0", i+1, value))
+				}
+			case "negativecolors":
+				colorList := parseList(value)
+				if len(colorList) == 0 {
+					configErrors = append(configErrors, fmt.Sprintf("line %d: invalid negativecolors format - must be comma-separated list", i+1))
+				} else {
+					chartDef.NegativeColors = colorList
+				}
 			default:
 				configErrors = append(configErrors, fmt.Sprintf("line %d: unknown configuration key '%s'", i+1, key))
 			}
@@ -457,7 +474,17 @@ func renderChartFromDefinition(chartDef ChartDefinition) (string, error) {
 	case "pie", "piechart":
 		chart = gosvgchart.NewPieChart()
 	case "heatmap", "heatmapchart":
-		chart = gosvgchart.NewHeatmapChart()
+		heatmapChart := gosvgchart.NewHeatmapChart()
+		chart = heatmapChart
+		
+		// Set heatmap specific properties
+		if chartDef.SupportNegative {
+			heatmapChart.EnableNegativeValues(chartDef.SupportNegative)
+		}
+		
+		if len(chartDef.NegativeColors) > 0 {
+			heatmapChart.SetNegativeColors(chartDef.NegativeColors)
+		}
 	}
 
 	// Set basic properties

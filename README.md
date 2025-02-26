@@ -15,7 +15,7 @@ A simple, declarative SVG chart library for Go. This library allows you to creat
   - Line charts (with multiple series support)
   - Bar charts (with multiple series support, grouped or stacked)
   - Pie/Donut charts
-  - Heatmap charts (GitHub-style activity heatmap)
+  - Heatmap charts (GitHub-style activity heatmap or feedback visualization)
 - Multiple series support for line and bar charts
 - Customizable styling and options
 - Automatic dark mode support for system color scheme adaptation
@@ -34,70 +34,6 @@ This means the dimensions you specify (via `SetSize()` or in the markdown format
 <svg width="100%" height="auto" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
   <!-- Chart content -->
 </svg>
-```
-
-## Automatic Color Palettes
-
-GoSVGChart provides two automatic color palette modes:
-
-### Auto Palette
-
-The `auto` palette assigns visually distinct colors to data points or series:
-
-```go
-// For a single data series
-chart := gosvgchart.NewBarChart().
-    SetTitle("Monthly Sales").
-    SetData([]float64{120, 250, 180, 310, 270, 390}).
-    SetLabels([]string{"Jan", "Feb", "Mar", "Apr", "May", "Jun"}).
-    SetPalette("auto")
-
-// For multiple series
-lineChart := gosvgchart.NewLineChart().
-    SetTitle("Monthly Sales by Product").
-    SetLabels([]string{"Jan", "Feb", "Mar", "Apr", "May", "Jun"}).
-    SetPalette("auto")
-
-// Add series
-lineChart.AddSeries("Product A", []float64{120, 150, 180, 210, 240, 270})
-lineChart.AddSeries("Product B", []float64{200, 180, 160, 140, 120, 100})
-```
-
-In Markdown format:
-```
-linechart
-title: Monthly Sales by Product
-width: 800
-height: 500
-palette: auto
-
-series:
-Month | Product A | Product B | Product C
-Jan | 120 | 200 | 50
-Feb | 150 | 180 | 80
-```
-
-### Gradient Palette
-
-The `gradient` palette creates color gradients with varying lightness:
-
-```go
-// Single series gradient (monochromatic)
-chart := gosvgchart.NewBarChart().
-    SetTitle("Monthly Sales").
-    SetData([]float64{120, 250, 180, 310, 270, 390}).
-    SetLabels([]string{"Jan", "Feb", "Mar", "Apr", "May", "Jun"}).
-    SetPalette("gradient")
-
-// Multiple series gradient (each series gets its own hue)
-lineChart := gosvgchart.NewLineChart().
-    SetTitle("Monthly Sales by Product").
-    SetLabels([]string{"Jan", "Feb", "Mar", "Apr", "May", "Jun"}).
-    SetPalette("gradient")
-
-// Add series
-lineChart.AddSeries("Product A", []float64{120, 150, 180, 210, 240, 270})
-lineChart.AddSeries("Product B", []float64{200, 180, 160, 140, 120, 100})
 ```
 
 ## Dark Mode Support
@@ -172,7 +108,7 @@ svg := chart.Render()
 
 ### Using the Markdown Format
 
-For charts with multiple series, use the tabular format:
+For line charts with multiple series:
 
 ```
 linechart
@@ -200,7 +136,6 @@ width: 800
 height: auto
 stacked: false
 seriescolors: #4285F4, #EA4335, #FBBC05, #34A853
-legendwidth: 0.25
 
 series:
 Quarter | North | South | East | West
@@ -308,8 +243,7 @@ chart := gosvgchart.New().
     SetLabels([]string{"Jan", "Feb", "Mar", "Apr", "May", "Jun"}).
     SetColors([]string{"#3498db"}).
     SetSize(800, 0). // Height will be ignored when auto-height is enabled
-    SetAutoHeight(true).
-    SetLegendWidth(0.2) // Reserve 20% of chart width for the legend
+    SetAutoHeight(true)
 
 // Render to SVG string
 svg := chart.Render()
@@ -348,6 +282,49 @@ chart.SetCellSize(15).          // Size of each cell (will adapt to available sp
 chart.SetColors([]string{
     "#ebedf0", "#9be9a8", "#40c463", "#30a14e", "#216e39",
 })
+
+// Render to SVG string
+svg := chart.Render()
+```
+
+### Heatmap Chart with Positive/Negative Values for Feedback
+
+```go
+import (
+    "github.com/riclib/gosvgchart"
+    "time"
+)
+
+// Create a heatmap chart for feedback ratings (-1 to +1)
+chart := gosvgchart.NewHeatmapChart().
+    SetTitle("User Feedback Ratings").
+    SetSize(800, 250)
+
+// Set feedback data with dates in YYYY-MM-DD format
+chart.SetLabels([]string{
+    "2025-01-01", "2025-01-02", "2025-01-03", 
+    "2025-01-04", "2025-01-05", "2025-01-06",
+}).
+SetData([]float64{0.8, -0.5, 1.0, -0.3, 0.6, -0.9})
+
+// Green gradient for positive feedback
+chart.SetColors([]string{
+    "#ebedf0", "#9be9a8", "#40c463", "#30a14e", "#216e39",
+})
+
+// Red gradient for negative feedback
+chart.SetNegativeColors([]string{
+    "#ebedf0", "#f9a8a8", "#f67575", "#e64545", "#c92a2a",
+})
+
+// Enable support for negative values (enabled by default)
+chart.EnableNegativeValues(true)
+
+// Optional: set min value explicitly (default is auto)
+chart.SetMinValue(-1.0)
+
+// Optional: set max value explicitly (default is auto) 
+chart.SetMaxValue(1.0)
 
 // Render to SVG string
 svg := chart.Render()
@@ -443,7 +420,6 @@ title: Revenue with Auto Height
 width: 800
 height: auto
 colors: #3498db
-legendwidth: 0.2
 
 data:
 Jan | 120
@@ -473,6 +449,26 @@ data:
 2025-02-05 | 14
 2025-02-15 | 11
 2025-02-24 | 10
+```
+
+### Feedback Heatmap Example (Positive/Negative Values)
+
+```gosvgchart
+heatmapchart
+title: User Feedback Heatmap
+width: 800
+height: 250
+colors: #ebedf0, #9be9a8, #40c463, #30a14e, #216e39
+negativecolors: #ebedf0, #f9a8a8, #f67575, #e64545, #c92a2a
+supportnegative: true
+
+data:
+2025-01-01 | 0.8
+2025-01-02 | -0.5
+2025-01-03 | 1.0
+2025-01-04 | -0.3
+2025-01-05 | 0.6
+2025-01-06 | -0.9
 ```
 
 ### Side-by-Side Charts Example
@@ -579,7 +575,6 @@ All chart types share these common methods:
 | `SetTitle(title string)` | Sets the chart title |
 | `SetSize(width, height int)` | Sets the chart dimensions in pixels |
 | `SetAutoHeight(auto bool)` | Enables automatic height calculation based on width (16:9 ratio for standard charts, 250px for heatmaps) |
-| `SetLegendWidth(percentage float64)` | Sets the width of the legend area as a percentage (0.0-0.5) of chart width |
 | `SetData(data []float64)` | Sets the chart data values |
 | `SetLabels(labels []string)` | Sets the chart labels |
 | `SetColors(colors []string)` | Sets the color palette as hex values (e.g., "#ff0000") |
@@ -616,6 +611,9 @@ All chart types share these common methods:
 | `SetCellRounding(radius int)` | Sets the corner radius of cells |
 | `SetDateFormat(format string)` | Sets the date format (Go time format) |
 | `SetMaxValue(max float64)` | Sets the maximum value for color scaling |
+| `SetMinValue(min float64)` | Sets the minimum value for color scaling (useful for negative values) |
+| `SetNegativeColors(colors []string)` | Sets the color palette for negative values (from least to most intense) |
+| `EnableNegativeValues(enable bool)` | Enables or disables support for negative values |
 | `SetDayLabels(labels []string)` | Sets the labels for days of the week |
 | `SetMonthLabels(labels []string)` | Sets the labels for months |
 
@@ -640,6 +638,7 @@ The `examples/` directory contains standalone examples you can run directly:
 ```bash
 go run examples/dark_mode_example.go
 go run examples/heatmap_autosizing_example.go
+go run examples/feedback_heatmap/main.go
 ```
 
 ### Unified Examples Command
@@ -663,6 +662,7 @@ go build -o chart-examples ./cmd/examples
 Each example will generate SVG files in the current directory that you can open in a web browser or SVG viewer:
 
 - Heatmap: `heatmap_autosizing.svg` and `heatmap_autosizing_small.svg`
+- Feedback Heatmap: `feedback_heatmap.svg`
 - Line chart: `line_chart_example.svg`
 - Bar chart: `bar_chart_example.svg`
 - Pie chart: `pie_chart_example.svg`

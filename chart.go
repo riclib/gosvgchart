@@ -41,8 +41,8 @@ type BaseChart struct {
 	SeriesColors []string
 	ShowTitle    bool
 	ShowLegend   bool
-	LegendWidth  float64  // Percentage of chart width (0.0-0.5) reserved for legend
-	Palette      string   // "auto" or "gradient" for automatic color assignment
+	LegendWidth  float64 // Percentage of chart width (0.0-0.5) reserved for legend
+	Palette      string  // "auto" or "gradient" for automatic color assignment
 	Margin       struct {
 		Top    int
 		Right  int
@@ -96,13 +96,16 @@ type PieChart struct {
 // HeatmapChart implements a heatmap chart similar to GitHub's activity heatmap
 type HeatmapChart struct {
 	BaseChart
-	CellSize     int      // Size of each cell in pixels
-	CellSpacing  int      // Spacing between cells in pixels
-	CellRounding int      // Corner radius of cells
-	DateFormat   string   // Date format string
-	DayLabels    []string // Labels for days of week (Sunday-Saturday)
-	MonthLabels  []string // Labels for months
-	MaxValue     float64  // Maximum value for color scaling (0 for auto)
+	CellSize       int      // Size of each cell in pixels
+	CellSpacing    int      // Spacing between cells in pixels
+	CellRounding   int      // Corner radius of cells
+	DateFormat     string   // Date format string
+	DayLabels      []string // Labels for days of week (Sunday-Saturday)
+	MonthLabels    []string // Labels for months
+	MaxValue       float64  // Maximum value for color scaling (0 for auto)
+	MinValue       float64  // Minimum value for color scaling (0 for auto)
+	NegativeColors []string // Colors for negative values (from least to most intense)
+	SupportNegative bool    // Whether to support negative values
 }
 
 // New creates a new line chart (for backward compatibility)
@@ -213,7 +216,7 @@ func NewHeatmapChart() *HeatmapChart {
 		BaseChart: BaseChart{
 			ChartType:       "heatmap",
 			Width:           800,
-			Height:          200,
+			Height:          250,
 			AutoHeight:      false,
 			ShowTitle:       true,
 			ShowLegend:      true,
@@ -221,15 +224,17 @@ func NewHeatmapChart() *HeatmapChart {
 			BackgroundColor: "#ffffff",
 			DarkModeSupport: true, // Enable dark mode by default
 		},
-		CellSize:     15,
-		CellSpacing:  3,
-		CellRounding: 2,
-		DateFormat:   "2006-01-02",
+		CellSize:       15,
+		CellSpacing:    3,
+		CellRounding:   2,
+		DateFormat:     "2006-01-02",
 		// We'll use the single-letter day labels defined in the Render method
 		// so we don't need to set them here anymore
-		DayLabels:   []string{},
-		MonthLabels: []string{"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"},
-		MaxValue:    0, // 0 means auto-scale
+		DayLabels:      []string{},
+		MonthLabels:    []string{"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"},
+		MaxValue:       0, // 0 means auto-scale
+		MinValue:       0, // 0 means auto-scale
+		SupportNegative: true, // Enable negative values support by default
 	}
 
 	chart.Margin.Top = 50
@@ -237,8 +242,11 @@ func NewHeatmapChart() *HeatmapChart {
 	chart.Margin.Bottom = 50
 	chart.Margin.Left = 50
 
-	// Default colors - from light to dark for intensity
+	// Default colors - from light to dark for intensity (positive values)
 	chart.Colors = []string{"#ebedf0", "#9be9a8", "#40c463", "#30a14e", "#216e39"}
+	
+	// Default colors for negative values - from light to dark intensity
+	chart.NegativeColors = []string{"#ebedf0", "#f9a8a8", "#f67575", "#e64545", "#c92a2a"}
 
 	// Set up default themes
 	chart.EnableDarkModeSupport(true)
@@ -506,6 +514,24 @@ func (c *HeatmapChart) SetMaxValue(max float64) *HeatmapChart {
 	return c
 }
 
+// SetMinValue sets the minimum value for color scaling
+func (c *HeatmapChart) SetMinValue(min float64) *HeatmapChart {
+	c.MinValue = min
+	return c
+}
+
+// SetNegativeColors sets the color palette for negative values (from least to most intense)
+func (c *HeatmapChart) SetNegativeColors(colors []string) *HeatmapChart {
+	c.NegativeColors = colors
+	return c
+}
+
+// EnableNegativeValues enables or disables negative value support
+func (c *HeatmapChart) EnableNegativeValues(enable bool) *HeatmapChart {
+	c.SupportNegative = enable
+	return c
+}
+
 // SetDateFormat sets the date format string (Go time format)
 func (c *HeatmapChart) SetDateFormat(format string) *HeatmapChart {
 	c.DateFormat = format
@@ -642,7 +668,7 @@ func (c *LineChart) Render() string {
 	// Chart area dimensions (reduced by legend width if showing legend)
 	chartWidth := c.Width - c.Margin.Left - c.Margin.Right - legendAreaWidth
 	chartHeight := c.Height - c.Margin.Top - c.Margin.Bottom
-	
+
 	// Adjust legendX calculation for later use based on the reserved area
 	legendX := c.Width - c.Margin.Right - 150
 	if c.ShowLegend && c.LegendWidth > 0 && len(c.Series) > 0 {
@@ -751,7 +777,7 @@ func (c *LineChart) Render() string {
 		// Draw legend if we have multiple series
 		if c.ShowLegend && len(c.Series) > 0 {
 			legendY := c.Margin.Top + 20
- 				// Using the legendX value pre-calculated above based on reserved legend area
+			// Using the legendX value pre-calculated above based on reserved legend area
 
 			for i, series := range c.Series {
 				// Determine color for this series
@@ -874,7 +900,7 @@ func (c *BarChart) Render() string {
 		// For standard charts, use a 16:9 aspect ratio (common screen format)
 		c.Height = c.Width * 9 / 16
 	}
-	
+
 	// Calculate the legend area width in pixels (if legend is shown)
 	var legendAreaWidth int
 	if c.ShowLegend && c.LegendWidth > 0 && len(c.Series) > 0 {
@@ -934,7 +960,7 @@ func (c *BarChart) Render() string {
 	// Chart area dimensions (reduced by legend width if showing legend)
 	chartWidth := c.Width - c.Margin.Left - c.Margin.Right - legendAreaWidth
 	chartHeight := c.Height - c.Margin.Top - c.Margin.Bottom
-	
+
 	// Adjust legendX calculation for later use based on the reserved area
 	legendX := c.Width - c.Margin.Right - 150
 	if c.ShowLegend && c.LegendWidth > 0 && len(c.Series) > 0 {
@@ -1138,7 +1164,7 @@ func (c *BarChart) Render() string {
 					// Add value text on top of bar
 					if c.DarkModeSupport {
 						svg.WriteString(fmt.Sprintf(`<text x="%d" y="%d" text-anchor="middle" font-family="Arial" font-size="12" fill="var(--chart-text)">%.0f</text>`,
- 							barX+barWidth/2, barY-5, value))
+							barX+barWidth/2, barY-5, value))
 					} else {
 						svg.WriteString(fmt.Sprintf(`<text x="%d" y="%d" text-anchor="middle" font-family="Arial" font-size="12" fill="black">%.0f</text>`,
 							barX+barWidth/2, barY-5, value))
@@ -1150,7 +1176,7 @@ func (c *BarChart) Render() string {
 		// Draw legend if we have multiple series
 		if c.ShowLegend && len(c.Series) > 0 {
 			legendY := c.Margin.Top + 20
- 				// Using the legendX value pre-calculated above based on reserved legend area
+			// Using the legendX value pre-calculated above based on reserved legend area
 
 			for i, series := range c.Series {
 				// Determine color for this series
@@ -1249,7 +1275,7 @@ func (c *PieChart) Render() string {
 	if c.AutoHeight {
 		c.Height = c.Width // For pie charts, use a square aspect ratio
 	}
-	
+
 	// Calculate the legend area width in pixels (if legend is shown)
 	var legendAreaWidth int
 	if c.ShowLegend && c.LegendWidth > 0 && len(c.Labels) > 0 {
@@ -1318,13 +1344,13 @@ func (c *PieChart) Render() string {
 	if c.ShowLegend && c.LegendWidth > 0 && len(c.Labels) > 0 {
 		// Shift center left if legend width is reserved
 		adjustedWidth = c.Width - legendAreaWidth
-		centerX = adjustedWidth / 2 + c.Margin.Left
+		centerX = adjustedWidth/2 + c.Margin.Left
 	} else {
 		adjustedWidth = c.Width
 		centerX = c.Width / 2
 	}
 	centerY := c.Height / 2
-	
+
 	// Adjust radius to account for legend area
 	radius := int(math.Min(float64(adjustedWidth-c.Margin.Left-c.Margin.Right),
 		float64(c.Height-c.Margin.Top-c.Margin.Bottom))) / 2
@@ -1595,13 +1621,38 @@ func (c *HeatmapChart) Render() string {
 		cellSize = int(math.Min(float64(c.CellSize), calculatedCellSize))
 	}
 
-	// Find max value for color scaling
+	// Find min and max values for color scaling
 	maxVal := c.MaxValue
-	if maxVal <= 0 {
+	minVal := c.MinValue
+
+	// Initialize min/max for auto-scaling
+	if maxVal <= 0 || minVal == 0 {
 		// Auto-scale
-		for _, v := range c.Data {
-			if v > maxVal {
-				maxVal = v
+		if len(c.Data) > 0 {
+			// Initialize with first value
+			if maxVal <= 0 {
+				maxVal = c.Data[0]
+			}
+			if minVal == 0 {
+				minVal = c.Data[0]
+			}
+			
+			// Find actual min/max
+			for _, v := range c.Data {
+				if v > maxVal {
+					maxVal = v
+				}
+				if v < minVal {
+					minVal = v
+				}
+			}
+		} else {
+			// Default if no data
+			if maxVal <= 0 {
+				maxVal = 10
+			}
+			if minVal == 0 {
+				minVal = 0
 			}
 		}
 	}
@@ -1665,15 +1716,46 @@ func (c *HeatmapChart) Render() string {
 			}
 
 			// Calculate color based on value
-			colorIndex := 0
-			if maxVal > 0 {
-				// Scale value from 0 to len(colors)-1
-				colorIndex = int(math.Min(float64(len(c.Colors)-1), math.Floor(value/maxVal*float64(len(c.Colors)))))
-			}
-
-			color := c.Colors[0] // Default to lowest color
-			if colorIndex < len(c.Colors) && colorIndex >= 0 {
-				color = c.Colors[colorIndex]
+			var color string
+			
+			if c.SupportNegative && value < 0 {
+				// Handle negative values
+				if len(c.NegativeColors) > 0 {
+					// Only use negative colors if we have them
+					negValue := math.Abs(value)
+					negMaxVal := math.Abs(minVal)
+					colorIndex := 0
+					
+					if negMaxVal > 0 {
+						// Scale value from 0 to len(negativeColors)-1
+						colorIndex = int(math.Min(float64(len(c.NegativeColors)-1), 
+							math.Floor(negValue/negMaxVal*float64(len(c.NegativeColors)))))
+					}
+					
+					// Use the negative color scheme
+					if colorIndex < len(c.NegativeColors) && colorIndex >= 0 {
+						color = c.NegativeColors[colorIndex]
+					} else {
+						color = c.NegativeColors[0] // Default to lowest negative color
+					}
+				} else {
+					// Fallback if no negative colors defined
+					color = c.Colors[0] // Default to lowest color
+				}
+			} else {
+				// Handle zero or positive values
+				colorIndex := 0
+				if maxVal > 0 {
+					// Scale value from 0 to len(colors)-1
+					colorIndex = int(math.Min(float64(len(c.Colors)-1), 
+						math.Floor(value/maxVal*float64(len(c.Colors)))))
+				}
+				
+				if colorIndex < len(c.Colors) && colorIndex >= 0 {
+					color = c.Colors[colorIndex]
+				} else {
+					color = c.Colors[0] // Default to lowest color
+				}
 			}
 
 			// Calculate cell position
@@ -1697,27 +1779,74 @@ func (c *HeatmapChart) Render() string {
 		legendX := c.Margin.Left
 		legendY := startY + 7*(cellSize+c.CellSpacing) + 30
 		legendLabelY := legendY + cellSize/2 + 5
-
-		if c.DarkModeSupport {
-			svg.WriteString(fmt.Sprintf(`<text x="%d" y="%d" font-family="Arial" font-size="10" text-anchor="start" fill="var(--chart-text)">Less</text>`,
-				legendX, legendLabelY))
+		
+		// Check if we need to display separate legends for positive and negative values
+		if c.SupportNegative && minVal < 0 && len(c.NegativeColors) > 0 && maxVal > 0 {
+			// Draw negative values legend
+			negLegendX := legendX
+			
+			if c.DarkModeSupport {
+				svg.WriteString(fmt.Sprintf(`<text x="%d" y="%d" font-family="Arial" font-size="10" text-anchor="start" fill="var(--chart-text)">-</text>`,
+					negLegendX, legendLabelY))
+			} else {
+				svg.WriteString(fmt.Sprintf(`<text x="%d" y="%d" font-family="Arial" font-size="10" text-anchor="start">-</text>`,
+					negLegendX, legendLabelY))
+			}
+			
+			// Draw negative color scale (reversed so most intense is leftmost)
+			for i := len(c.NegativeColors) - 1; i >= 0; i-- {
+				cellX := negLegendX + 20 + (len(c.NegativeColors)-1-i)*(cellSize+c.CellSpacing)
+				svg.WriteString(fmt.Sprintf(`<rect x="%d" y="%d" width="%d" height="%d" rx="%d" ry="%d" fill="%s"/>`,
+					cellX, legendY, cellSize, cellSize, c.CellRounding, c.CellRounding, c.NegativeColors[i]))
+			}
+			
+			// Draw positive values legend (starting after negative legend)
+			posLegendX := negLegendX + 20 + len(c.NegativeColors)*(cellSize+c.CellSpacing) + 30
+			
+			if c.DarkModeSupport {
+				svg.WriteString(fmt.Sprintf(`<text x="%d" y="%d" font-family="Arial" font-size="10" text-anchor="start" fill="var(--chart-text)">+</text>`,
+					posLegendX, legendLabelY))
+			} else {
+				svg.WriteString(fmt.Sprintf(`<text x="%d" y="%d" font-family="Arial" font-size="10" text-anchor="start">+</text>`,
+					posLegendX, legendLabelY))
+			}
+			
+			// Draw positive color scale
+			for i, color := range c.Colors {
+				cellX := posLegendX + 20 + i*(cellSize+c.CellSpacing)
+				svg.WriteString(fmt.Sprintf(`<rect x="%d" y="%d" width="%d" height="%d" rx="%d" ry="%d" fill="%s"/>`,
+					cellX, legendY, cellSize, cellSize, c.CellRounding, c.CellRounding, color))
+			}
 		} else {
-			svg.WriteString(fmt.Sprintf(`<text x="%d" y="%d" font-family="Arial" font-size="10" text-anchor="start">Less</text>`,
-				legendX, legendLabelY))
-		}
+			// Draw simple legend (just positive or just negative)
+			if c.DarkModeSupport {
+				svg.WriteString(fmt.Sprintf(`<text x="%d" y="%d" font-family="Arial" font-size="10" text-anchor="start" fill="var(--chart-text)">Less</text>`,
+					legendX, legendLabelY))
+			} else {
+				svg.WriteString(fmt.Sprintf(`<text x="%d" y="%d" font-family="Arial" font-size="10" text-anchor="start">Less</text>`,
+					legendX, legendLabelY))
+			}
+			
+			// Determine which color set to use based on the data
+			colorSet := c.Colors
+			if c.SupportNegative && maxVal <= 0 && minVal < 0 && len(c.NegativeColors) > 0 {
+				// If all values are negative, use the negative color set
+				colorSet = c.NegativeColors
+			}
 
-		for i, color := range c.Colors {
-			cellX := legendX + 40 + i*(cellSize+c.CellSpacing)
-			svg.WriteString(fmt.Sprintf(`<rect x="%d" y="%d" width="%d" height="%d" rx="%d" ry="%d" fill="%s"/>`,
-				cellX, legendY, cellSize, cellSize, c.CellRounding, c.CellRounding, color))
-		}
+			for i, color := range colorSet {
+				cellX := legendX + 40 + i*(cellSize+c.CellSpacing)
+				svg.WriteString(fmt.Sprintf(`<rect x="%d" y="%d" width="%d" height="%d" rx="%d" ry="%d" fill="%s"/>`,
+					cellX, legendY, cellSize, cellSize, c.CellRounding, c.CellRounding, color))
+			}
 
-		if c.DarkModeSupport {
-			svg.WriteString(fmt.Sprintf(`<text x="%d" y="%d" font-family="Arial" font-size="10" text-anchor="start" fill="var(--chart-text)">More</text>`,
-				legendX+40+len(c.Colors)*(cellSize+c.CellSpacing)+5, legendLabelY))
-		} else {
-			svg.WriteString(fmt.Sprintf(`<text x="%d" y="%d" font-family="Arial" font-size="10" text-anchor="start">More</text>`,
-				legendX+40+len(c.Colors)*(cellSize+c.CellSpacing)+5, legendLabelY))
+			if c.DarkModeSupport {
+				svg.WriteString(fmt.Sprintf(`<text x="%d" y="%d" font-family="Arial" font-size="10" text-anchor="start" fill="var(--chart-text)">More</text>`,
+					legendX+40+len(colorSet)*(cellSize+c.CellSpacing)+5, legendLabelY))
+			} else {
+				svg.WriteString(fmt.Sprintf(`<text x="%d" y="%d" font-family="Arial" font-size="10" text-anchor="start">More</text>`,
+					legendX+40+len(colorSet)*(cellSize+c.CellSpacing)+5, legendLabelY))
+			}
 		}
 	}
 
@@ -1787,7 +1916,7 @@ func (chart *BaseChart) SetPalette(palette string) *BaseChart {
 	palette = strings.ToLower(palette)
 	if palette == "auto" || palette == "gradient" {
 		chart.Palette = palette
-		
+
 		// Generate automatic colors based on the palette
 		chart.generatePaletteColors()
 	}
@@ -1800,7 +1929,7 @@ func (chart *BaseChart) generatePaletteColors() {
 	autoBaseColors := []string{
 		"#4285F4", // Google Blue
 		"#EA4335", // Google Red
-		"#FBBC05", // Google Yellow 
+		"#FBBC05", // Google Yellow
 		"#34A853", // Google Green
 		"#8AB4F8", // Light Blue
 		"#F6AEA9", // Light Red
@@ -1811,7 +1940,7 @@ func (chart *BaseChart) generatePaletteColors() {
 		"#00BCD4", // Cyan
 		"#795548", // Brown
 	}
-	
+
 	// Define base hues for gradient palette (in HSL degrees)
 	// Well-separated hues for distinct series
 	gradientBaseHues := []int{
@@ -1824,7 +1953,7 @@ func (chart *BaseChart) generatePaletteColors() {
 		320, // Pink
 		90,  // Yellow-Green
 	}
-	
+
 	switch chart.Palette {
 	case "auto":
 		// For standard charts with a single data set
@@ -1835,27 +1964,27 @@ func (chart *BaseChart) generatePaletteColors() {
 				// using even distribution from the auto color palette
 				numColors := len(chart.Data)
 				colors := make([]string, numColors)
-				
+
 				for i := 0; i < numColors; i++ {
 					colorIndex := i % len(autoBaseColors)
 					colors[i] = autoBaseColors[colorIndex]
 				}
-				
+
 				chart.Colors = colors
 			}
 		} else {
 			// For multiple series, use one color per series
 			numSeries := len(chart.Series)
 			seriesColors := make([]string, numSeries)
-			
+
 			for i := 0; i < numSeries; i++ {
 				colorIndex := i % len(autoBaseColors)
 				seriesColors[i] = autoBaseColors[colorIndex]
 			}
-			
+
 			chart.SeriesColors = seriesColors
 		}
-		
+
 	case "gradient":
 		// Gradient mode creates a gradient from darker to lighter within each series
 		if len(chart.Series) == 0 || len(chart.Series) == 1 {
@@ -1864,7 +1993,7 @@ func (chart *BaseChart) generatePaletteColors() {
 				baseHue := 210 // Default to blue
 				numColors := len(chart.Data)
 				colors := make([]string, numColors)
-				
+
 				// Generate a gradient from dark to light with the same hue
 				for i := 0; i < numColors; i++ {
 					// Calculate lightness from 30% to 70%
@@ -1872,7 +2001,7 @@ func (chart *BaseChart) generatePaletteColors() {
 					// Keep saturation constant at 70%
 					colors[i] = fmt.Sprintf("hsl(%d, 70%%, %d%%)", baseHue, lightness)
 				}
-				
+
 				chart.Colors = colors
 			}
 		} else {
@@ -1880,16 +2009,16 @@ func (chart *BaseChart) generatePaletteColors() {
 			// but data points within a series fade from dark to light
 			numSeries := len(chart.Series)
 			seriesColors := make([]string, numSeries)
-			
+
 			// Assign a unique hue to each series
 			for i := 0; i < numSeries; i++ {
 				hueIndex := i % len(gradientBaseHues)
 				hue := gradientBaseHues[hueIndex]
-				
+
 				// Medium saturation and lightness for series colors
 				seriesColors[i] = fmt.Sprintf("hsl(%d, 70%%, 50%%)", hue)
 			}
-			
+
 			chart.SeriesColors = seriesColors
 		}
 	}

@@ -142,7 +142,8 @@ width: 600
 height: 400
 colors: #3498db, #e74c3c
 
-data:
+series:
+Month | Sales
 Jan | 120
 Feb | 250
 Mar | 180
@@ -166,29 +167,7 @@ Feb | 150 | 180 | 80
 Mar | 180 | 160 | 110
 Apr | 210 | 140 | 140
 May | 240 | 120 | 170
-Jun | 270 | 100 | 200
-Jan | 120
-Feb | 150
-Mar | 180
-Apr | 210
-May | 240
-Jun | 270
-
-series: Product B
-Jan | 200
-Feb | 180
-Mar | 160
-Apr | 140
-May | 120
-Jun | 100
-
-series: Product C
-Jan | 50
-Feb | 80
-Mar | 110
-Apr | 140
-May | 170
-Jun | 200</pre>
+Jun | 270 | 100 | 200</pre>
 					</div>
 					
 					<div class="example">
@@ -199,7 +178,8 @@ width: 600
 height: 400
 colors: #2ecc71, #e74c3c, #f39c12, #9b59b6
 
-data:
+series:
+Quarter | Revenue
 Q1 | 850
 Q2 | 940
 Q3 | 1100
@@ -220,29 +200,7 @@ Quarter | North | South | East | West
 Q1 | 150 | 120 | 90 | 180
 Q2 | 180 | 140 | 110 | 200
 Q3 | 210 | 160 | 130 | 220
-Q4 | 240 | 180 | 150 | 240
-Q1 | 150
-Q2 | 180
-Q3 | 210
-Q4 | 240
-
-series: South
-Q1 | 120
-Q2 | 140
-Q3 | 160
-Q4 | 180
-
-series: East
-Q1 | 90
-Q2 | 110
-Q3 | 130
-Q4 | 150
-
-series: West
-Q1 | 180
-Q2 | 200
-Q3 | 220
-Q4 | 240</pre>
+Q4 | 240 | 180 | 150 | 240</pre>
 					</div>
 					
 					<div class="example">
@@ -252,63 +210,6 @@ title: Quarterly Revenue by Region (Stacked)
 width: 800
 height: auto
 stacked: true
-seriescolors: #4285F4, #EA4335, #FBBC05, #34A853
-
-series:
-Quarter | North | South | East | West
-Q1 | 150 | 120 | 90 | 180
-Q2 | 180 | 140 | 110 | 200
-Q3 | 210 | 160 | 130 | 220
-Q4 | 240 | 180 | 150 | 240
-Q1 | 150
-Q2 | 180
-Q3 | 210
-Q4 | 240
-
-series: South
-Q1 | 120
-Q2 | 140
-Q3 | 160
-Q4 | 180
-
-series: East
-Q1 | 90
-Q2 | 110
-Q3 | 130
-Q4 | 150
-
-series: West
-Q1 | 180
-Q2 | 200
-Q3 | 220
-Q4 | 240</pre>
-					</div>
-					
-					<div class="example">
-						<h4>Tabular Format (Multiple Series)</h4>
-						<pre>linechart
-title: Monthly Sales by Product (Tabular Format)
-width: 800
-height: auto
-seriescolors: #4285F4, #EA4335, #FBBC05
-
-series:
-Month | Product A | Product B | Product C
-Jan | 120 | 200 | 50
-Feb | 150 | 180 | 80
-Mar | 180 | 160 | 110
-Apr | 210 | 140 | 140
-May | 240 | 120 | 170
-Jun | 270 | 100 | 200</pre>
-					</div>
-					
-					<div class="example">
-						<h4>Tabular Format Bar Chart</h4>
-						<pre>barchart
-title: Quarterly Revenue by Region (Tabular Format)
-width: 800
-height: auto
-stacked: false
 seriescolors: #4285F4, #EA4335, #FBBC05, #34A853
 
 series:
@@ -327,7 +228,8 @@ width: 600
 height: 500
 colors: #3498db, #2ecc71, #e74c3c, #f39c12, #9b59b6
 
-data:
+series:
+Product | Share
 Product A | 35
 Product B | 25
 Product C | 20
@@ -340,10 +242,11 @@ Others | 5</pre>
 						<pre>heatmapchart
 title: GitHub Contribution Activity
 width: 800
-height: 200
+height: 250
 colors: #ebedf0, #9be9a8, #40c463, #30a14e, #216e39
 
-data:
+series:
+Date | Contributions
 2025-01-01 | 5
 2025-01-05 | 12
 2025-01-10 | 3
@@ -374,7 +277,8 @@ width: 600
 height: 400
 colors: #2ecc71, #e74c3c, #f39c12, #9b59b6
 
-data:
+series:
+Quarter | Revenue
 Q1 | 850
 Q2 | 940
 Q3 | 1100
@@ -390,7 +294,8 @@ width: 600
 height: 400
 colors: #3498db
 
-data:
+series:
+Month | Sales
 Jan | 120
 Feb | 250
 Mar | 180
@@ -442,10 +347,11 @@ Jun | 270 | 100 | 200
 heatmapchart
 title: GitHub Contributions
 width: 800
-height: 200
+height: 250
 colors: #ebedf0, #9be9a8, #40c463, #30a14e, #216e39
 
-data:
+series:
+Date | Contributions
 2025-01-01 | 5
 2025-01-05 | 12
 2025-01-10 | 3
@@ -468,7 +374,8 @@ width: 450
 height: 300
 colors: #3498db, #2ecc71
 
-data:
+series:
+Quarter | Revenue
 Q1 | 850
 Q2 | 940
 Q3 | 1100
@@ -481,7 +388,8 @@ width: 450
 height: 300
 colors: #e74c3c, #f39c12
 
-data:
+series:
+Quarter | Revenue
 Q1 | 950
 Q2 | 1040
 Q3 | 1200
